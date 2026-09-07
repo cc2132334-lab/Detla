@@ -4,7 +4,7 @@ import json
 import threading
 import time
 
-# --- PAGE CONFIG ---
+# --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Delta Live Terminal v1.0.0",
     page_icon="⚡",
@@ -12,53 +12,59 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- INJECT CSS TO HIDE STREAMLIT TOOLBAR, HEADER & FOOTER ---
+# --- 2. AGGRESSIVE CSS: HIDE ALL STREAMLIT TOOLBARS & MANAGE APP BUTTON ---
 hide_streamlit_ui = """
 <style>
-    /* Hide top header, hamburger menu, deploy button, and decorations */
-    header {visibility: hidden; display: none !important;}
-    #MainMenu {visibility: hidden; display: none !important;}
-    .stDeployButton {display: none !important;}
-    #stDecoration {display: none !important;}
-    div[data-testid="stToolbar"] {visibility: hidden; display: none !important;}
+    /* Top Header, Toolbar, Menu, Deploy Button */
+    header, header[data-testid="stHeader"] {display: none !important;}
+    div[data-testid="stToolbar"] {display: none !important;}
     div[data-testid="stDecoration"] {display: none !important;}
-    
-    /* Hide bottom footer and running status */
-    footer {visibility: hidden; display: none !important;}
-    div[data-testid="stStatusWidget"] {visibility: hidden; display: none !important;}
-    
-    /* Remove unnecessary default top paddings */
+    #MainMenu {display: none !important;}
+    .stDeployButton {display: none !important;}
+
+    /* Bottom Footer, Running Status */
+    footer {display: none !important;}
+    div[data-testid="stStatusWidget"] {display: none !important;}
+
+    /* Streamlit Cloud Specific: Manage App Button, Viewer Badges, Floating Actions */
+    [data-testid="manage-app-button"] {display: none !important;}
+    button[title="Manage app"] {display: none !important;}
+    .viewerBadge_container__r5tak {display: none !important;}
+    .viewerBadge_link__qRIco {display: none !important;}
+    div[class*="viewerBadge"] {display: none !important;}
+    div[class*="manage-app"] {display: none !important;}
+    div[class*="StreamlitFloatingActions"] {display: none !important;}
+    div[data-testid="stFloatingActions"] {display: none !important;}
+
+    /* Mobile & Desktop Clean Full-Screen Layout */
     .block-container {
-        padding-top: 1.5rem !important;
+        padding-top: 1rem !important;
         padding-bottom: 0rem !important;
-        padding-left: 2rem !important;
-        padding-right: 2rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
 </style>
 """
 st.markdown(hide_streamlit_ui, unsafe_allow_html=True)
 
-# --- GLOBAL TICK DATA STORE ---
+# --- 3. GLOBAL TICK DATA STORE ---
 if "market_data" not in st.session_state:
     st.session_state.market_data = {
-        "BTCUSD": {"mark_price": "0.0", "spot_price": "0.0", "timestamp": "-"},
-        "ETHUSD": {"mark_price": "0.0", "spot_price": "0.0", "timestamp": "-"}
+        "BTCUSD": {"mark_price": "0.0", "spot_price": "0.0"},
+        "ETHUSD": {"mark_price": "0.0", "spot_price": "0.0"}
     }
 
-# Delta Exchange India WebSocket URL: wss://socket.india.delta.exchange
-# Delta Global WebSocket URL: wss://socket.delta.exchange
+# Delta Exchange India WebSocket (Change to wss://socket.delta.exchange for Global)
 WS_URL = "wss://socket.india.delta.exchange"
 SYMBOLS = ["BTCUSD", "ETHUSD"]
 
 def on_message(ws, message):
     try:
         data = json.loads(message)
-        # v2/ticker payload parsing
         if "symbol" in data and data.get("symbol") in st.session_state.market_data:
             sym = data["symbol"]
             st.session_state.market_data[sym]["mark_price"] = data.get("mark_price", "0.0")
             st.session_state.market_data[sym]["spot_price"] = data.get("spot_price", "0.0")
-            st.session_state.market_data[sym]["timestamp"] = time.strftime("%H:%M:%S")
     except Exception:
         pass
 
@@ -88,13 +94,13 @@ def run_ws():
         except Exception:
             time.sleep(2)
 
-# Start WebSocket thread once
+# Run WebSocket in Background Thread
 if "ws_thread_started" not in st.session_state:
     st.session_state.ws_thread_started = True
     t = threading.Thread(target=run_ws, daemon=True)
     t.start()
 
-# --- UI DISPLAY ---
+# --- 4. DASHBOARD UI ---
 st.subheader("⚡ Delta Live Feed [v1.0.0]")
 
 col1, col2 = st.columns(2)
@@ -104,7 +110,7 @@ with col1:
 with col2:
     eth_box = st.empty()
 
-# --- FAST REFRESH LOOP ---
+# --- 5. REAL-TIME FAST REFRESH LOOP ---
 while True:
     btc_info = st.session_state.market_data.get("BTCUSD", {})
     eth_info = st.session_state.market_data.get("ETHUSD", {})
@@ -121,5 +127,4 @@ while True:
         delta=f"Spot: ${float(eth_info.get('spot_price', 0)):,.2f}"
     )
 
-    # Minimal sleep for responsiveness
-    time.sleep(0.1)
+    time.sleep(0.2)
