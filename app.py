@@ -1,15 +1,15 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# --- 1. STREAMLIT CONFIGURATION ---
+# --- 1. FULL PAGE CONFIG ---
 st.set_page_config(
-    page_title="Delta Quant - Glass Desk",
+    page_title="Delta Terminal v1.6.0 - SFP & MSS",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. HIDE ALL STREAMLIT UI, HEADERS & MANAGE APP ---
+# --- 2. HIDE ALL STREAMLIT UI & TOOLBARS ---
 st.markdown("""
 <style>
     header, header[data-testid="stHeader"] {display: none !important;}
@@ -31,22 +31,22 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. GLASSMORPHIC LIVE DESK (HTML5 / CSS3 / CLIENT WEBSOCKET) ---
-glass_desk_html = """
+# --- 3. ZERO-LAG TERMINAL WITH SFP + MSS DUAL WINDOW ---
+terminal_html = """
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Glass Desk Terminal</title>
+<title>Delta Terminal</title>
 <style>
   /* LIGHT THEME (DEFAULT) */
   :root[data-theme="light"] {
-    --bg-page: #f0f4f8;
-    --card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(243, 246, 252, 0.85));
-    --card-border: rgba(226, 232, 240, 0.9);
-    --tile-bg: rgba(255, 255, 255, 0.9);
-    --tile-border: #e2e8f0;
+    --bg-page: #f4f6fa;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --tile-bg: #f8fafc;
+    --tile-border: #edf2f7;
     --text-primary: #0f172a;
     --text-muted: #64748b;
     --neon-green: #059669;
@@ -57,16 +57,20 @@ glass_desk_html = """
     --clock-bg: #e0f2fe;
     --clock-border: #bae6fd;
     --clock-text: #0369a1;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-    --gauge-track: #e2e8f0;
-    --gauge-marker: #0f172a;
-    --pill-bg: #ffffff;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    --pill-bg: #f8fafc;
+    --log-bg: #0f172a;
+    --log-text: #38bdf8;
+    --tab-active-bg: #0284c7;
+    --tab-active-text: #ffffff;
+    --step-done-bg: rgba(5, 150, 105, 0.12);
+    --step-done-border: #059669;
   }
 
   /* DARK THEME */
   :root[data-theme="dark"] {
-    --bg-page: #080c14;
-    --card-bg: linear-gradient(135deg, rgba(18, 24, 38, 0.9), rgba(11, 15, 25, 0.8));
+    --bg-page: #080b11;
+    --card-bg: rgba(18, 24, 38, 0.85);
     --card-border: rgba(255, 255, 255, 0.08);
     --tile-bg: rgba(255, 255, 255, 0.03);
     --tile-border: rgba(255, 255, 255, 0.05);
@@ -80,16 +84,19 @@ glass_desk_html = """
     --clock-bg: rgba(0, 229, 255, 0.08);
     --clock-border: rgba(0, 229, 255, 0.2);
     --clock-text: #00e5ff;
-    --shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
-    --gauge-track: #1e293b;
-    --gauge-marker: #ffffff;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     --pill-bg: rgba(255, 255, 255, 0.03);
+    --log-bg: #05070a;
+    --log-text: #00e5ff;
+    --tab-active-bg: #00e5ff;
+    --tab-active-text: #080b11;
+    --step-done-bg: rgba(0, 240, 144, 0.12);
+    --step-done-border: #00f090;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
-  body { background: var(--bg-page); color: var(--text-primary); padding: 12px; overflow-x: hidden; transition: background 0.25s ease, color 0.25s ease; padding-bottom: 50px; }
+  body { background: var(--bg-page); color: var(--text-primary); padding: 12px; overflow-x: hidden; transition: background 0.2s ease, color 0.2s ease; padding-bottom: 60px; }
 
-  /* HEADER */
   .header {
     display: flex; justify-content: space-between; align-items: center;
     padding: 6px 4px 14px 4px; border-bottom: 1px solid var(--header-border); margin-bottom: 14px;
@@ -109,95 +116,175 @@ glass_desk_html = """
     padding: 4px 9px;
     border-radius: 6px;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   }
 
-  /* GRID CARDS */
-  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+  /* CARDS GRID */
+  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 16px; }
   @media(min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
 
   .card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 20px;
-    padding: 18px;
+    border-radius: 16px;
+    padding: 16px;
     box-shadow: var(--shadow);
-    backdrop-filter: blur(20px);
     position: relative;
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+    opacity: 0.6;
   }
 
-  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-  .coin-badge { font-size: 18px; font-weight: 900; }
-  .spot-tag { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .coin-badge { font-size: 18px; font-weight: 800; }
+  .spot-tag { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
   .price-box { text-align: right; }
-  .live-price { font-size: 26px; font-weight: 900; font-family: monospace; transition: color 0.15s ease; }
+  .live-price { font-size: 26px; font-weight: 800; font-family: monospace; }
   .price-up { color: var(--neon-green) !important; }
   .price-down { color: var(--neon-red) !important; }
 
-  /* LIQUIDITY HEAT GAUGE */
-  .gauge-container { margin: 16px 0 14px 0; }
-  .gauge-labels { display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; }
-  .gauge-track { height: 8px; background: var(--gauge-track); border-radius: 4px; overflow: hidden; position: relative; }
-  .gauge-fill { height: 100%; width: 50%; background: linear-gradient(90deg, var(--neon-red), var(--neon-yellow) 50%, var(--neon-green)); border-radius: 4px; transition: width 0.3s ease; }
-  .gauge-marker { position: absolute; top: 0; left: 50%; width: 3px; height: 8px; background: var(--gauge-marker); box-shadow: 0 0 6px rgba(0,0,0,0.6); transition: left 0.3s ease; }
-
   /* METRICS TILES */
-  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
   .tile {
     background: var(--tile-bg);
     border: 1px solid var(--tile-border);
     border-radius: 10px;
-    padding: 9px 10px;
+    padding: 10px;
   }
-  .tile-title { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-  .tile-val { font-size: 13px; font-weight: 700; font-family: monospace; }
+  .tile-title { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .tile-val { font-size: 14px; font-weight: 700; font-family: monospace; }
 
-  /* DISTANCE PILLS */
-  .dist-row { margin-top: 10px; display: flex; gap: 8px; }
+  /* DISTANCE TAGS */
+  .dist-row { margin-top: 12px; display: flex; gap: 8px; }
   .dist-pill {
     flex: 1; display: flex; justify-content: space-between; align-items: center;
-    padding: 7px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; font-family: monospace;
+    padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; font-family: monospace;
     background: var(--pill-bg); border: 1px solid var(--card-border);
   }
   .dist-pos { color: var(--neon-green); font-weight: 700; }
   .dist-neg { color: var(--neon-red); font-weight: 700; }
 
-  /* TRADE PARAMETERS DECK */
-  .trade-deck {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 12px;
+  /* SHARED SMC & STRATEGY CONTAINER */
+  .section-container {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
   }
-  .trade-box {
+  .section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; border-bottom: 1px solid var(--tile-border); padding-bottom: 10px;
+  }
+  .section-title { font-size: 13.5px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
+
+  /* TIMEFRAME TABS */
+  .tab-group { display: flex; gap: 6px; background: var(--tile-bg); padding: 3px; border-radius: 8px; border: 1px solid var(--card-border); }
+  .tab-btn {
+    border: none; background: transparent; color: var(--text-muted);
+    padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .tab-btn.active {
+    background: var(--tab-active-bg);
+    color: var(--tab-active-text);
+  }
+
+  .smc-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media(min-width: 768px) { .smc-grid { grid-template-columns: 1fr 1fr; } }
+
+  .smc-card {
     background: var(--tile-bg);
     border: 1px solid var(--tile-border);
-    border-radius: 10px;
-    padding: 8px;
-    text-align: center;
+    border-radius: 12px;
+    padding: 12px;
   }
-  .trade-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
-  .trade-val { font-size: 11px; font-weight: 800; font-family: monospace; }
+  .smc-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .setup-badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .badge-buy { background: rgba(5, 150, 105, 0.15); color: var(--neon-green); border: 1px solid var(--neon-green); }
+  .badge-sell { background: rgba(225, 29, 72, 0.15); color: var(--neon-red); border: 1px solid var(--neon-red); }
+  .badge-wait { background: rgba(217, 119, 6, 0.15); color: var(--neon-yellow); border: 1px solid var(--neon-yellow); }
 
-  .setup-narrative {
-    background: var(--tile-bg);
+  .trade-param-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+  .trade-param-box { background: var(--card-bg); border: 1px solid var(--card-border); padding: 8px; border-radius: 8px; text-align: center; }
+  .param-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3px; font-weight: 600; }
+  .param-val { font-size: 12px; font-weight: 700; font-family: monospace; }
+
+  /* 4 STEPS PIPELINE UI FROM IMAGE */
+  .steps-pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+  .step-node {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 8px 6px;
+    text-align: center;
+    font-size: 10px;
+    transition: all 0.2s;
+  }
+  .step-node.active-step {
+    background: var(--step-done-bg);
+    border-color: var(--step-done-border);
+    font-weight: 700;
+  }
+  .step-node .step-num { font-size: 9px; color: var(--text-muted); display: block; margin-bottom: 2px; }
+
+  .ob-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .ob-type { font-size: 11px; font-weight: 700; }
+  .ob-range { font-size: 11px; font-family: monospace; color: var(--text-muted); }
+  .ob-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+  .detail-explanation {
+    background: var(--card-bg);
     border-left: 3px solid var(--neon-cyan);
     padding: 8px 10px;
     border-radius: 4px;
     font-size: 11px;
-    line-height: 1.4;
+    line-height: 1.45;
     color: var(--text-muted);
-    margin-top: 10px;
+    margin-top: 8px;
   }
+
+  /* LOG CONSOLE */
+  .console-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 14px; margin-bottom: 6px; font-size: 11px; font-weight: 700; color: var(--text-muted);
+  }
+  .console-box {
+    background: var(--log-bg);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--log-text);
+    height: 120px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  .log-line { margin-bottom: 4px; display: flex; gap: 8px; }
+  .log-time { color: var(--text-muted); }
+  .log-tf { font-weight: 700; color: var(--neon-cyan); }
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
+<!-- TOP HEADER -->
 <div class="header">
   <div class="header-left">
     <div class="pulse-dot"></div>
-    <span>GLASS DESK QUANT TERMINAL</span>
+    <span>DELTA QUANT ENGINE</span>
   </div>
   <div class="header-right">
     <div class="utc-clock" id="utc-clock">00:00:00 UTC</div>
@@ -205,34 +292,19 @@ glass_desk_html = """
   </div>
 </div>
 
-<!-- LIVE CARDS -->
+<!-- LIVE METRICS GRID -->
 <div class="grid">
-  <!-- BTC CARD -->
+  <!-- BTC -->
   <div class="card" id="card-btc">
     <div class="card-top">
       <div>
         <div class="coin-badge">🟠 BTC/USD</div>
-        <div class="spot-tag">Spot: <span id="btc-spot">--</span> • Vol: <span id="btc-vol">--</span></div>
+        <div class="spot-tag">Spot: <span id="btc-spot">--</span> | Vol: <span id="btc-vol">--</span></div>
       </div>
       <div class="price-box">
         <div class="live-price" id="btc-price">Loading...</div>
       </div>
     </div>
-
-    <!-- LIQUIDITY HEAT GAUGE -->
-    <div class="gauge-container">
-      <div class="gauge-labels">
-        <span>PDL: <strong id="btc-pdl-lbl">--</strong> (0%)</span>
-        <span style="color: var(--neon-cyan);">50% EQ: <strong id="btc-eq-lbl">--</strong></span>
-        <span>PDH: <strong id="btc-pdh-lbl">--</strong> (100%)</span>
-      </div>
-      <div class="gauge-track">
-        <div class="gauge-fill" id="btc-gauge-fill"></div>
-        <div class="gauge-marker" id="btc-gauge-marker"></div>
-      </div>
-    </div>
-
-    <!-- METRICS TILES -->
     <div class="metrics-grid">
       <div class="tile">
         <div class="tile-title">Today High (UTC)</div>
@@ -251,8 +323,6 @@ glass_desk_html = """
         <div class="tile-val" id="btc-pdl">--</div>
       </div>
     </div>
-
-    <!-- DISTANCE -->
     <div class="dist-row">
       <div class="dist-pill">
         <span style="color: var(--text-muted)">Dist to PDH:</span>
@@ -263,52 +333,19 @@ glass_desk_html = """
         <span id="btc-dist-pdl">--</span>
       </div>
     </div>
-
-    <!-- TRADE DECK -->
-    <div class="trade-deck">
-      <div class="trade-box">
-        <div class="trade-lbl">SMC Action</div>
-        <div class="trade-val" id="btc-action">MONITOR</div>
-      </div>
-      <div class="trade-box">
-        <div class="trade-lbl">Entry (Zone)</div>
-        <div class="trade-val" id="btc-entry">--</div>
-      </div>
-      <div class="trade-box">
-        <div class="trade-lbl">Stop Loss</div>
-        <div class="trade-val" style="color: var(--neon-red);" id="btc-sl">--</div>
-      </div>
-    </div>
-
-    <div class="setup-narrative" id="btc-narrative">Scanning institutional range equilibrium and liquidity pools...</div>
   </div>
 
-  <!-- ETH CARD -->
+  <!-- ETH -->
   <div class="card" id="card-eth">
     <div class="card-top">
       <div>
         <div class="coin-badge">🔷 ETH/USD</div>
-        <div class="spot-tag">Spot: <span id="eth-spot">--</span> • Vol: <span id="eth-vol">--</span></div>
+        <div class="spot-tag">Spot: <span id="eth-spot">--</span> | Vol: <span id="eth-vol">--</span></div>
       </div>
       <div class="price-box">
         <div class="live-price" id="eth-price">Loading...</div>
       </div>
     </div>
-
-    <!-- LIQUIDITY HEAT GAUGE -->
-    <div class="gauge-container">
-      <div class="gauge-labels">
-        <span>PDL: <strong id="eth-pdl-lbl">--</strong> (0%)</span>
-        <span style="color: var(--neon-cyan);">50% EQ: <strong id="eth-eq-lbl">--</strong></span>
-        <span>PDH: <strong id="eth-pdh-lbl">--</strong> (100%)</span>
-      </div>
-      <div class="gauge-track">
-        <div class="gauge-fill" id="eth-gauge-fill"></div>
-        <div class="gauge-marker" id="eth-gauge-marker"></div>
-      </div>
-    </div>
-
-    <!-- METRICS TILES -->
     <div class="metrics-grid">
       <div class="tile">
         <div class="tile-title">Today High (UTC)</div>
@@ -327,8 +364,6 @@ glass_desk_html = """
         <div class="tile-val" id="eth-pdl">--</div>
       </div>
     </div>
-
-    <!-- DISTANCE -->
     <div class="dist-row">
       <div class="dist-pill">
         <span style="color: var(--text-muted)">Dist to PDH:</span>
@@ -339,29 +374,218 @@ glass_desk_html = """
         <span id="eth-dist-pdl">--</span>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- TRADE DECK -->
-    <div class="trade-deck">
-      <div class="trade-box">
-        <div class="trade-lbl">SMC Action</div>
-        <div class="trade-val" id="eth-action">MONITOR</div>
+<!-- WINDOW 1: EXISTING SMC & ORDER BLOCK SCANNER -->
+<div class="section-container">
+  <div class="section-header">
+    <div class="section-title">🎯 SMC & ORDER BLOCK (OB) SCANNER</div>
+    <div class="tab-group">
+      <button class="tab-btn active" id="tab-15m" onclick="switchTF('15m')">15M TF</button>
+      <button class="tab-btn" id="tab-5m" onclick="switchTF('5m')">5M TF</button>
+    </div>
+  </div>
+
+  <div class="smc-grid">
+    <!-- BTC SMC PANEL -->
+    <div class="smc-card">
+      <div class="smc-card-top">
+        <span style="font-weight: 700; font-size: 13px;">BTC (<span class="tf-label">15M</span>): <span id="btc-smc-state">SCANNING</span></span>
+        <span class="setup-badge badge-wait" id="btc-badge">WAITING</span>
       </div>
-      <div class="trade-box">
-        <div class="trade-lbl">Entry (Zone)</div>
-        <div class="trade-val" id="eth-entry">--</div>
+      <div class="ob-panel">
+        <div>
+          <div class="ob-type" id="btc-ob-type">Scanning OB...</div>
+          <div class="ob-range" id="btc-ob-range">Zone: --</div>
+        </div>
+        <div class="ob-status badge-wait" id="btc-ob-status">UNTESTED</div>
       </div>
-      <div class="trade-box">
-        <div class="trade-lbl">Stop Loss</div>
-        <div class="trade-val" style="color: var(--neon-red);" id="eth-sl">--</div>
+      <div class="trade-param-row">
+        <div class="trade-param-box">
+          <div class="param-lbl">Action</div>
+          <div class="param-val" id="btc-action">MONITOR</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Entry / OB</div>
+          <div class="param-val" id="btc-entry">--</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Stop Loss</div>
+          <div class="param-val" style="color: var(--neon-red);" id="btc-sl">--</div>
+        </div>
+      </div>
+      <div class="detail-explanation" id="btc-narrative">Scanning OB footprint and structure...</div>
+    </div>
+
+    <!-- ETH SMC PANEL -->
+    <div class="smc-card">
+      <div class="smc-card-top">
+        <span style="font-weight: 700; font-size: 13px;">ETH (<span class="tf-label">15M</span>): <span id="eth-smc-state">SCANNING</span></span>
+        <span class="setup-badge badge-wait" id="eth-badge">WAITING</span>
+      </div>
+      <div class="ob-panel">
+        <div>
+          <div class="ob-type" id="eth-ob-type">Scanning OB...</div>
+          <div class="ob-range" id="eth-ob-range">Zone: --</div>
+        </div>
+        <div class="ob-status badge-wait" id="eth-ob-status">UNTESTED</div>
+      </div>
+      <div class="trade-param-row">
+        <div class="trade-param-box">
+          <div class="param-lbl">Action</div>
+          <div class="param-val" id="eth-action">MONITOR</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Entry / OB</div>
+          <div class="param-val" id="eth-entry">--</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Stop Loss</div>
+          <div class="param-val" style="color: var(--neon-red);" id="eth-sl">--</div>
+        </div>
+      </div>
+      <div class="detail-explanation" id="eth-narrative">Scanning OB footprint and structure...</div>
+    </div>
+  </div>
+</div>
+
+<!-- WINDOW 2: LIQUIDITY SWEEP (SFP) + MSS STRATEGY EXECUTION (NEW WINDOW FROM IMAGE) -->
+<div class="section-container">
+  <div class="section-header">
+    <div class="section-title">⚡ LIQUIDITY SWEEP (SFP) + MSS STRATEGY ENGINE</div>
+    <div class="tab-group">
+      <button class="tab-btn active" id="sfp-tab-15m" onclick="switchSFPTF('15m')">15M TF</button>
+      <button class="tab-btn" id="sfp-tab-5m" onclick="switchSFPTF('5m')">5M TF</button>
+    </div>
+  </div>
+
+  <div class="smc-grid">
+    <!-- BTC SFP+MSS SETUP -->
+    <div class="smc-card">
+      <div class="smc-card-top">
+        <span style="font-weight: 700; font-size: 13px;">🟠 BTC SFP Setup (<span class="sfp-tf-label">15M</span>)</span>
+        <span class="setup-badge badge-wait" id="btc-sfp-badge">NO SWEEP</span>
+      </div>
+
+      <!-- 4-STEP PROGRESSION PIPELINE -->
+      <div class="steps-pipeline">
+        <div class="step-node active-step" id="btc-step-1">
+          <span class="step-num">Step 1</span>Key Zone
+        </div>
+        <div class="step-node" id="btc-step-2">
+          <span class="step-num">Step 2</span>Sweep (SFP)
+        </div>
+        <div class="step-node" id="btc-step-3">
+          <span class="step-num">Step 3</span>LTF MSS
+        </div>
+        <div class="step-node" id="btc-step-4">
+          <span class="step-num">Step 4</span>Execution
+        </div>
+      </div>
+
+      <!-- TRADE EXECUTION PARAMS -->
+      <div class="trade-param-row">
+        <div class="trade-param-box">
+          <div class="param-lbl">Signal</div>
+          <div class="param-val" id="btc-sfp-signal">WAIT</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Entry (FVG/Retest)</div>
+          <div class="param-val" id="btc-sfp-entry">--</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Invalidation (SL)</div>
+          <div class="param-val" style="color: var(--neon-red);" id="btc-sfp-sl">--</div>
+        </div>
+      </div>
+
+      <div class="trade-param-row" style="grid-template-columns: 1fr 1fr;">
+        <div class="trade-param-box">
+          <div class="param-lbl">Target (TP1 / EQ)</div>
+          <div class="param-val" style="color: var(--neon-green);" id="btc-sfp-tp1">--</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Target (TP2 / Opposing Pool)</div>
+          <div class="param-val" style="color: var(--neon-cyan);" id="btc-sfp-tp2">--</div>
+        </div>
+      </div>
+
+      <!-- EXPLANATION -->
+      <div class="detail-explanation" id="btc-sfp-rationale">
+        Waiting for institutional sweep at HTF key levels (PDH / PDL)...
       </div>
     </div>
 
-    <div class="setup-narrative" id="eth-narrative">Scanning institutional range equilibrium and liquidity pools...</div>
+    <!-- ETH SFP+MSS SETUP -->
+    <div class="smc-card">
+      <div class="smc-card-top">
+        <span style="font-weight: 700; font-size: 13px;">🔷 ETH SFP Setup (<span class="sfp-tf-label">15M</span>)</span>
+        <span class="setup-badge badge-wait" id="eth-sfp-badge">NO SWEEP</span>
+      </div>
+
+      <!-- 4-STEP PROGRESSION PIPELINE -->
+      <div class="steps-pipeline">
+        <div class="step-node active-step" id="eth-step-1">
+          <span class="step-num">Step 1</span>Key Zone
+        </div>
+        <div class="step-node" id="eth-step-2">
+          <span class="step-num">Step 2</span>Sweep (SFP)
+        </div>
+        <div class="step-node" id="eth-step-3">
+          <span class="step-num">Step 3</span>LTF MSS
+        </div>
+        <div class="step-node" id="eth-step-4">
+          <span class="step-num">Step 4</span>Execution
+        </div>
+      </div>
+
+      <!-- TRADE EXECUTION PARAMS -->
+      <div class="trade-param-row">
+        <div class="trade-param-box">
+          <div class="param-lbl">Signal</div>
+          <div class="param-val" id="eth-sfp-signal">WAIT</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Entry (FVG/Retest)</div>
+          <div class="param-val" id="eth-sfp-entry">--</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Invalidation (SL)</div>
+          <div class="param-val" style="color: var(--neon-red);" id="eth-sfp-sl">--</div>
+        </div>
+      </div>
+
+      <div class="trade-param-row" style="grid-template-columns: 1fr 1fr;">
+        <div class="trade-param-box">
+          <div class="param-lbl">Target (TP1 / EQ)</div>
+          <div class="param-val" style="color: var(--neon-green);" id="eth-sfp-tp1">--</div>
+        </div>
+        <div class="trade-param-box">
+          <div class="param-lbl">Target (TP2 / Opposing Pool)</div>
+          <div class="param-val" style="color: var(--neon-cyan);" id="eth-sfp-tp2">--</div>
+        </div>
+      </div>
+
+      <!-- EXPLANATION -->
+      <div class="detail-explanation" id="eth-sfp-rationale">
+        Waiting for institutional sweep at HTF key levels (PDH / PDL)...
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIT LOGS -->
+  <div class="console-header">
+    <span>SFP & MSS MULTI-TIMEFRAME AUDIT LOGS (<span id="log-active-tf">15M</span>)</span>
+    <span style="font-size: 10px; cursor: pointer; color: var(--neon-cyan)" onclick="clearLogs()">Clear Logs</span>
+  </div>
+  <div class="console-box" id="console-logs">
+    <div class="log-line"><span class="log-time">[INIT]</span> SFP + MSS Strategy Engine active. Listening for Wick Rejections...</div>
   </div>
 </div>
 
 <script>
-  // THEME MANAGEMENT (DEFAULT: LIGHT)
+  // THEME MANAGEMENT
   let currentTheme = localStorage.getItem('delta_theme') || 'light';
   applyTheme(currentTheme);
 
@@ -376,7 +600,31 @@ glass_desk_html = """
     applyTheme(currentTheme);
   }
 
-  // UTC CLOCK
+  // TABS STATE
+  let activeTF = '15m';
+  let activeSFPTF = '15m';
+
+  function switchTF(tf) {
+    activeTF = tf;
+    document.getElementById('tab-15m').classList.toggle('active', tf === '15m');
+    document.getElementById('tab-5m').classList.toggle('active', tf === '5m');
+    document.querySelectorAll('.tf-label').forEach(el => el.innerText = tf.toUpperCase());
+    renderSMCUI('BTCUSD');
+    renderSMCUI('ETHUSD');
+  }
+
+  function switchSFPTF(tf) {
+    activeSFPTF = tf;
+    document.getElementById('sfp-tab-15m').classList.toggle('active', tf === '15m');
+    document.getElementById('sfp-tab-5m').classList.toggle('active', tf === '5m');
+    document.querySelectorAll('.sfp-tf-label').forEach(el => el.innerText = tf.toUpperCase());
+    document.getElementById('log-active-tf').innerText = tf.toUpperCase();
+    renderSFPUI('BTCUSD');
+    renderSFPUI('ETHUSD');
+    filterLogs();
+  }
+
+  // CLOCK
   function updateClock() {
     const now = new Date();
     document.getElementById('utc-clock').innerText = now.toUTCString().split(' ')[4] + ' UTC';
@@ -386,16 +634,58 @@ glass_desk_html = """
 
   // STATE DATA
   const state = {
-    BTCUSD: { price: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 1 },
-    ETHUSD: { price: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 2 }
+    BTCUSD: {
+      price: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 1,
+      '15m': { action: 'MONITOR', state: 'SCANNING', obType: '--', obRange: '--', obStatus: 'UNTESTED', entry: '--', sl: '--', narrative: '' },
+      '5m':  { action: 'MONITOR', state: 'SCANNING', obType: '--', obRange: '--', obStatus: 'UNTESTED', entry: '--', sl: '--', narrative: '' },
+      sfp_15m: { signal: 'WAIT', badge: 'NO SWEEP', entry: '--', sl: '--', tp1: '--', tp2: '--', step: 1, rationale: '', lastSig: '' },
+      sfp_5m:  { signal: 'WAIT', badge: 'NO SWEEP', entry: '--', sl: '--', tp1: '--', tp2: '--', step: 1, rationale: '', lastSig: '' }
+    },
+    ETHUSD: {
+      price: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 2,
+      '15m': { action: 'MONITOR', state: 'SCANNING', obType: '--', obRange: '--', obStatus: 'UNTESTED', entry: '--', sl: '--', narrative: '' },
+      '5m':  { action: 'MONITOR', state: 'SCANNING', obType: '--', obRange: '--', obStatus: 'UNTESTED', entry: '--', sl: '--', narrative: '' },
+      sfp_15m: { signal: 'WAIT', badge: 'NO SWEEP', entry: '--', sl: '--', tp1: '--', tp2: '--', step: 1, rationale: '', lastSig: '' },
+      sfp_5m:  { signal: 'WAIT', badge: 'NO SWEEP', entry: '--', sl: '--', tp1: '--', tp2: '--', step: 1, rationale: '', lastSig: '' }
+    }
   };
+
+  const logsHistory = [];
 
   function fmt(val, dec) {
     if(!val || isNaN(val)) return '--';
     return Number(val).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
   }
 
-  // FETCH CANDLES (DAILY BASELINE)
+  function addLog(tf, msg) {
+    const now = new Date().toTimeString().split(' ')[0];
+    const item = { tf, text: msg, time: now };
+    logsHistory.push(item);
+    if (logsHistory.length > 80) logsHistory.shift();
+    if (activeSFPTF === tf || tf === 'ALL') appendLogToBox(item);
+  }
+
+  function appendLogToBox(log) {
+    const box = document.getElementById('console-logs');
+    const el = document.createElement('div');
+    el.className = 'log-line';
+    el.innerHTML = `<span class="log-time">[${log.time}]</span> <span class="log-tf">[${log.tf.toUpperCase()}]</span> ${log.text}`;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function filterLogs() {
+    const box = document.getElementById('console-logs');
+    box.innerHTML = '';
+    logsHistory.filter(l => l.tf === activeSFPTF || l.tf === 'ALL').forEach(appendLogToBox);
+  }
+
+  function clearLogs() {
+    logsHistory.length = 0;
+    document.getElementById('console-logs').innerHTML = '<div class="log-line"><span class="log-time">[CLEARED]</span> Logs reset.</div>';
+  }
+
+  // FETCH CANDLES
   async function fetchDailyStats() {
     try {
       const symbols = ['BTCUSD', 'ETHUSD'];
@@ -414,15 +704,232 @@ glass_desk_html = """
           state[sym].cdh = parseFloat(today.high);
           state[sym].cdl = parseFloat(today.low);
 
-          updateUI(sym);
+          updateMetricsUI(sym);
+          evaluateSMC(sym, '15m');
+          evaluateSMC(sym, '5m');
+          evaluateSFPStrategy(sym, '15m');
+          evaluateSFPStrategy(sym, '5m');
         }
       }
     } catch(e) {
-      console.log("Candles fetch err", e);
+      console.log("Candles err", e);
     }
   }
 
-  function updateUI(sym) {
+  // SMC ENGINE (WINDOW 1)
+  function evaluateSMC(sym, tf) {
+    const d = state[sym];
+    if (!d.price || !d.pdh || !d.pdl) return;
+
+    const tfData = d[tf];
+    const eq = (d.pdh + d.pdl) / 2;
+    const distToPDH = d.price - d.pdh;
+    const distToPDL = d.price - d.pdl;
+
+    const factor = tf === '5m' ? 0.4 : 1.0;
+    const obBuffer = (d.price * (tf === '5m' ? 0.0015 : 0.0035));
+
+    let action = 'MONITOR';
+    let stateText = 'CONSOLIDATING';
+    let obType = '';
+    let obLow = 0, obHigh = 0;
+    let obStatus = 'UNTESTED';
+    let entry = '--';
+    let sl = '--';
+    let narrative = '';
+
+    if (distToPDH >= -(25 * factor)) {
+      action = 'SELL / SHORT';
+      stateText = tf === '5m' ? '5M CHoCH CONFIRMED' : '15M PDH LIQUIDITY SWEEP';
+      obType = '🔴 Bearish Supply OB';
+      obHigh = Math.max(d.cdh, d.pdh);
+      obLow = obHigh - obBuffer;
+      entry = `$${fmt(obLow, d.dec)} - $${fmt(obHigh, d.dec)}`;
+      sl = `$${fmt(obHigh * 1.002, d.dec)}`;
+      obStatus = d.price >= obLow && d.price <= obHigh ? 'MITIGATING' : 'PENDING TAP';
+      narrative = `${tf.toUpperCase()} Supply Order Block created above PDH ($${fmt(d.pdh, d.dec)}). Target internal discount liquidity.`;
+    } else if (distToPDL <= (25 * factor)) {
+      action = 'BUY / LONG';
+      stateText = tf === '5m' ? '5M CHoCH BREAKOUT' : '15M PDL LIQUIDITY RAID';
+      obType = '🟢 Bullish Demand OB';
+      obLow = Math.min(d.cdl, d.pdl);
+      obHigh = obLow + obBuffer;
+      entry = `$${fmt(obLow, d.dec)} - $${fmt(obHigh, d.dec)}`;
+      sl = `$${fmt(obLow * 0.998, d.dec)}`;
+      obStatus = d.price >= obLow && d.price <= obHigh ? 'MITIGATING' : 'PENDING TAP';
+      narrative = `${tf.toUpperCase()} Demand Order Block established near PDL ($${fmt(d.pdl, d.dec)}). Target EQ ($${fmt(eq, d.dec)}).`;
+    } else {
+      if (d.price > eq) {
+        stateText = 'PREMIUM BOS RETEST';
+        action = tf === '5m' ? 'WAIT SHORT' : 'WATCH PREMIUM';
+        obType = 'Bearish Internal OB';
+        obHigh = d.price + obBuffer;
+        obLow = d.price;
+        entry = `Retest $${fmt(obHigh, d.dec)}`;
+        sl = `SL > $${fmt(d.pdh, d.dec)}`;
+        obStatus = 'INACTIVE';
+        narrative = `${tf.toUpperCase()} trading above 50% EQ range. High time-frame bears defending supply.`;
+      } else {
+        stateText = 'DISCOUNT OB MITIGATION';
+        action = tf === '5m' ? 'WAIT LONG' : 'WATCH DISCOUNT';
+        obType = 'Bullish Internal OB';
+        obLow = d.price - obBuffer;
+        obHigh = d.price;
+        entry = `Pullback $${fmt(obLow, d.dec)}`;
+        sl = `SL < $${fmt(d.pdl, d.dec)}`;
+        obStatus = 'INACTIVE';
+        narrative = `${tf.toUpperCase()} testing discount array. Look for shift of character on 5m for entry.`;
+      }
+    }
+
+    tfData.action = action;
+    tfData.state = stateText;
+    tfData.obType = obType;
+    tfData.obRange = `$${fmt(obLow, d.dec)} - $${fmt(obHigh, d.dec)}`;
+    tfData.obStatus = obStatus;
+    tfData.entry = entry;
+    tfData.sl = sl;
+    tfData.narrative = narrative;
+
+    if (activeTF === tf) renderSMCUI(sym);
+  }
+
+  // SFP + MSS STRATEGY ENGINE (WINDOW 2 - FROM IMAGE)
+  function evaluateSFPStrategy(sym, tf) {
+    const d = state[sym];
+    if (!d.price || !d.pdh || !d.pdl) return;
+
+    const key = tf === '15m' ? 'sfp_15m' : 'sfp_5m';
+    const sfp = d[key];
+    const eq = (d.pdh + d.pdl) / 2;
+
+    const distToPDH = d.price - d.pdh;
+    const distToPDL = d.price - d.pdl;
+    const fvgBuffer = d.price * (tf === '5m' ? 0.001 : 0.002);
+
+    let signal = 'WAIT';
+    let badge = 'IN RANGE';
+    let entry = '--';
+    let sl = '--';
+    let tp1 = `$${fmt(eq, d.dec)}`;
+    let tp2 = '--';
+    let step = 1;
+    let rationale = '';
+
+    // PATTERN A & B: BEARISH SFP + MSS (SWEEPS PDH / EQH)
+    if (d.cdh > d.pdh && d.price < d.pdh) {
+      step = 4;
+      signal = 'SELL SHORT';
+      badge = 'BEARISH SFP + MSS';
+      entry = `$${fmt(d.pdh - fvgBuffer, d.dec)} - $${fmt(d.pdh, d.dec)}`;
+      sl = `$${fmt(d.cdh + (d.cdh * 0.001), d.dec)}`;
+      tp2 = `$${fmt(d.pdl, d.dec)}`;
+      rationale = `<strong>[Institutional Fakeout]:</strong> Price ne PDH ($${fmt(d.pdh, d.dec)}) ko wick se sweep kiya aur range ke andar wapas candle close kar di (SFP). LTF par Market Structure Shift (MSS) confirm hua hai. Entry FVG retest par karein, SL sweep wick ($${fmt(d.cdh, d.dec)}) ke upar rahega. Target Opposing EQL/PDL.`;
+    }
+    else if (distToPDH >= 0) {
+      step = 2;
+      signal = 'WATCH SFP';
+      badge = 'SWEEPING PDH';
+      entry = 'Wait Candle Close Inside';
+      sl = `Wick High`;
+      tp2 = `$${fmt(d.pdl, d.dec)}`;
+      rationale = `Price is sweeping PDH ($${fmt(d.pdh, d.dec)}) right now. Wait for Wick Rejection (SFP) and close below PDH to confirm breakout failure. Do not chase breakout.`;
+    }
+
+    // PATTERN A & B: BULLISH SFP + MSS (SWEEPS PDL / EQL)
+    else if (d.cdl < d.pdl && d.price > d.pdl) {
+      step = 4;
+      signal = 'BUY LONG';
+      badge = 'BULLISH SFP + MSS';
+      entry = `$${fmt(d.pdl, d.dec)} - $${fmt(d.pdl + fvgBuffer, d.dec)}`;
+      sl = `$${fmt(d.cdl - (d.cdl * 0.001), d.dec)}`;
+      tp2 = `$${fmt(d.pdh, d.dec)}`;
+      rationale = `<strong>[Institutional Fakeout]:</strong> Sell stops raided below PDL ($${fmt(d.pdl, d.dec)}). Long wick rejection ke sath candle close range ke andar hui (Bullish SFP). LTF MSS confirmed with displacement. Entry FVG retest par, SL sweep wick ($${fmt(d.cdl, d.dec)}) ke niche. Target Opposing EQH/PDH.`;
+    }
+    else if (distToPDL <= 0) {
+      step = 2;
+      signal = 'WATCH SFP';
+      badge = 'SWEEPING PDL';
+      entry = 'Wait Candle Close Inside';
+      sl = `Wick Low`;
+      tp2 = `$${fmt(d.pdh, d.dec)}`;
+      rationale = `Price is raiding liquidity below PDL ($${fmt(d.pdl, d.dec)}). Wait for SFP confirmation (Wick rejection followed by strong close back above PDL) before executing Long.`;
+    }
+
+    // NORMAL EQUILIBRIUM
+    else {
+      step = 1;
+      signal = 'MONITOR';
+      badge = 'NO SWEEP';
+      entry = `Wait Level Tap`;
+      sl = '--';
+      tp2 = d.price > eq ? `$${fmt(d.pdh, d.dec)}` : `$${fmt(d.pdl, d.dec)}`;
+      rationale = `Market trading between PDH ($${fmt(d.pdh, d.dec)}) and PDL ($${fmt(d.pdl, d.dec)}). Step 1 (Key Zones Mark) complete hai. Step 2 ke liye liquidity pool (PDH ya PDL) sweep hone ka wait karein.`;
+    }
+
+    sfp.signal = signal;
+    sfp.badge = badge;
+    sfp.entry = entry;
+    sfp.sl = sl;
+    sfp.tp1 = tp1;
+    sfp.tp2 = tp2;
+    sfp.step = step;
+    sfp.rationale = rationale;
+
+    if (sfp.lastSig !== signal && (signal.includes('BUY') || signal.includes('SELL'))) {
+      sfp.lastSig = signal;
+      addLog(tf, `<strong>${sym}</strong>: SFP+MSS Triggered <strong>${signal}</strong> | Entry: ${entry} | SL: ${sl}`);
+    }
+
+    if (activeSFPTF === tf) renderSFPUI(sym);
+  }
+
+  function renderSMCUI(sym) {
+    const prefix = sym === 'BTCUSD' ? 'btc' : 'eth';
+    const tfData = state[sym][activeTF];
+
+    document.getElementById(`${prefix}-smc-state`).innerText = tfData.state;
+    const badge = document.getElementById(`${prefix}-badge`);
+    badge.innerText = tfData.action;
+    badge.className = `setup-badge ${tfData.action.includes('BUY') ? 'badge-buy' : tfData.action.includes('SELL') ? 'badge-sell' : 'badge-wait'}`;
+
+    document.getElementById(`${prefix}-ob-type`).innerText = tfData.obType;
+    document.getElementById(`${prefix}-ob-range`).innerText = `Zone: ${tfData.obRange}`;
+    
+    const obStatEl = document.getElementById(`${prefix}-ob-status`);
+    obStatEl.innerText = tfData.obStatus;
+    obStatEl.className = `ob-status ${tfData.obStatus === 'MITIGATING' ? 'badge-buy' : 'badge-wait'}`;
+
+    document.getElementById(`${prefix}-action`).innerText = tfData.action;
+    document.getElementById(`${prefix}-entry`).innerText = tfData.entry;
+    document.getElementById(`${prefix}-sl`).innerText = tfData.sl;
+    document.getElementById(`${prefix}-narrative`).innerText = tfData.narrative;
+  }
+
+  function renderSFPUI(sym) {
+    const prefix = sym === 'BTCUSD' ? 'btc' : 'eth';
+    const key = activeSFPTF === '15m' ? 'sfp_15m' : 'sfp_5m';
+    const sfp = state[sym][key];
+
+    const badge = document.getElementById(`${prefix}-sfp-badge`);
+    badge.innerText = sfp.badge;
+    badge.className = `setup-badge ${sfp.signal.includes('BUY') ? 'badge-buy' : sfp.signal.includes('SELL') ? 'badge-sell' : 'badge-wait'}`;
+
+    document.getElementById(`${prefix}-sfp-signal`).innerText = sfp.signal;
+    document.getElementById(`${prefix}-sfp-entry`).innerText = sfp.entry;
+    document.getElementById(`${prefix}-sfp-sl`).innerText = sfp.sl;
+    document.getElementById(`${prefix}-sfp-tp1`).innerText = sfp.tp1;
+    document.getElementById(`${prefix}-sfp-tp2`).innerText = sfp.tp2;
+    document.getElementById(`${prefix}-sfp-rationale`).innerHTML = sfp.rationale;
+
+    // Update Step Pipeline nodes (1 to 4)
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById(`${prefix}-step-${i}`);
+      el.classList.toggle('active-step', i <= sfp.step);
+    }
+  }
+
+  function updateMetricsUI(sym) {
     const d = state[sym];
     const prefix = sym === 'BTCUSD' ? 'btc' : 'eth';
 
@@ -434,64 +941,6 @@ glass_desk_html = """
     if (d.spot) document.getElementById(`${prefix}-spot`).innerText = '$' + fmt(d.spot, d.dec);
     if (d.vol) document.getElementById(`${prefix}-vol`).innerText = fmt(d.vol, 0);
 
-    // GAUGE & RANGE CALCULATION
-    if (d.pdh && d.pdl) {
-      const eq = (d.pdh + d.pdl) / 2;
-      document.getElementById(`${prefix}-pdl-lbl`).innerText = '$' + fmt(d.pdl, 0);
-      document.getElementById(`${prefix}-pdh-lbl`).innerText = '$' + fmt(d.pdh, 0);
-      document.getElementById(`${prefix}-eq-lbl`).innerText = '$' + fmt(eq, 0);
-
-      if (d.price) {
-        // Percent position within PDL - PDH range
-        let pct = ((d.price - d.pdl) / (d.pdh - d.pdl)) * 100;
-        pct = Math.max(0, Math.min(100, pct)); // clamp between 0% and 100%
-
-        document.getElementById(`${prefix}-gauge-fill`).style.width = pct + '%';
-        document.getElementById(`${prefix}-gauge-marker`).style.left = pct + '%';
-
-        // SMC LOGIC
-        const diffPDH = d.price - d.pdh;
-        const diffPDL = d.price - d.pdl;
-
-        let action = 'MONITOR';
-        let entry = '--';
-        let sl = '--';
-        let narrative = '';
-
-        if (diffPDH >= 0) {
-          action = 'SELL / SFP';
-          entry = `$${fmt(d.price, d.dec)}`;
-          sl = `$${fmt(d.cdh * 1.002, d.dec)}`;
-          narrative = `Price swept above PDH ($${fmt(d.pdh, d.dec)}). Smart money hunting buy-stops. Looking for short mitigation towards 50% EQ ($${fmt(eq, d.dec)}).`;
-        } else if (diffPDL <= 0) {
-          action = 'BUY / SFP';
-          entry = `$${fmt(d.price, d.dec)}`;
-          sl = `$${fmt(d.cdl * 0.998, d.dec)}`;
-          narrative = `Liquidity raided below PDL ($${fmt(d.pdl, d.dec)}). Sell-stops mitigated. Bullish reaction targeting internal equilibrium ($${fmt(eq, d.dec)}).`;
-        } else {
-          if (d.price > eq) {
-            action = 'PREMIUM ZONE';
-            entry = `EQ: $${fmt(eq, d.dec)}`;
-            sl = `SL > $${fmt(d.pdh, d.dec)}`;
-            narrative = `Price trading in Premium array (> 50% EQ). Look for Bearish Order Blocks around PDH for short confirmation.`;
-          } else {
-            action = 'DISCOUNT ZONE';
-            entry = `EQ: $${fmt(eq, d.dec)}`;
-            sl = `SL < $${fmt(d.pdl, d.dec)}`;
-            narrative = `Price trading in Discount array (< 50% EQ). High probability bullish demand zone active near PDL.`;
-          }
-        }
-
-        const actEl = document.getElementById(`${prefix}-action`);
-        actEl.innerText = action;
-        actEl.style.color = action.includes('BUY') ? 'var(--neon-green)' : (action.includes('SELL') ? 'var(--neon-red)' : 'var(--text-primary)');
-        document.getElementById(`${prefix}-entry`).innerText = entry;
-        document.getElementById(`${prefix}-sl`).innerText = sl;
-        document.getElementById(`${prefix}-narrative`).innerText = narrative;
-      }
-    }
-
-    // DISTANCE
     if (d.price && d.pdh) {
       const diffPDH = d.price - d.pdh;
       const elPDH = document.getElementById(`${prefix}-dist-pdh`);
@@ -507,11 +956,12 @@ glass_desk_html = """
     }
   }
 
-  // DIRECT CLIENT WEBSOCKET (ZERO DELAY)
+  // DIRECT CLIENT WEBSOCKET STREAM
   function connectWS() {
     const ws = new WebSocket("wss://socket.india.delta.exchange");
 
     ws.onopen = () => {
+      addLog("ALL", "Delta live ticks connected. SFP & MSS execution ready.");
       ws.send(JSON.stringify({
         type: "subscribe",
         payload: {
@@ -529,7 +979,6 @@ glass_desk_html = """
 
         if (newPrice > 0) {
           const pEl = document.getElementById(sym === 'BTCUSD' ? 'btc-price' : 'eth-price');
-          
           if (d.price && newPrice !== d.price) {
             pEl.classList.remove('price-up', 'price-down');
             void pEl.offsetWidth;
@@ -541,16 +990,24 @@ glass_desk_html = """
 
           if (!d.cdh || newPrice > d.cdh) d.cdh = newPrice;
           if (!d.cdl || newPrice < d.cdl) d.cdl = newPrice;
+
+          evaluateSMC(sym, '15m');
+          evaluateSMC(sym, '5m');
+          evaluateSFPStrategy(sym, '15m');
+          evaluateSFPStrategy(sym, '5m');
         }
 
         if (msg.spot_price) d.spot = parseFloat(msg.spot_price);
         if (msg.volume) d.vol = parseFloat(msg.volume);
 
-        updateUI(sym);
+        updateMetricsUI(sym);
       }
     };
 
-    ws.onclose = () => setTimeout(connectWS, 2000);
+    ws.onclose = () => {
+      addLog("ALL", "Websocket connection dropped. Reconnecting...");
+      setTimeout(connectWS, 2000);
+    };
   }
 
   fetchDailyStats();
@@ -561,4 +1018,4 @@ glass_desk_html = """
 </html>
 """
 
-components.html(glass_desk_html, height=880, scrolling=True)
+components.html(terminal_html, height=1400, scrolling=True)
