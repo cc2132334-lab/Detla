@@ -3,13 +3,13 @@ import streamlit.components.v1 as components
 
 # --- 1. FULL PAGE CONFIG ---
 st.set_page_config(
-    page_title="Delta Terminal v1.4.0",
+    page_title="Delta Terminal v1.5.0",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. HIDE ALL STREAMLIT UI & TOOLBARS ---
+# --- 2. HIDE STREAMLIT UI & TOOLBARS ---
 st.markdown("""
 <style>
     header, header[data-testid="stHeader"] {display: none !important;}
@@ -31,7 +31,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. TERMINAL + SMC QUANT ENGINE ---
+# --- 3. TERMINAL + MULTI-TIMEFRAME SMC & OB ENGINE ---
 terminal_html = """
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -61,6 +61,8 @@ terminal_html = """
     --pill-bg: #f8fafc;
     --log-bg: #0f172a;
     --log-text: #38bdf8;
+    --tab-active-bg: #0284c7;
+    --tab-active-text: #ffffff;
   }
 
   /* DARK THEME */
@@ -84,6 +86,8 @@ terminal_html = """
     --pill-bg: rgba(255, 255, 255, 0.03);
     --log-bg: #05070a;
     --log-text: #00e5ff;
+    --tab-active-bg: #00e5ff;
+    --tab-active-text: #080b11;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
@@ -159,7 +163,7 @@ terminal_html = """
   .dist-pos { color: var(--neon-green); font-weight: 700; }
   .dist-neg { color: var(--neon-red); font-weight: 700; }
 
-  /* SMC SECTION */
+  /* SMC MULTI-TIMEFRAME SECTION */
   .smc-container {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -169,11 +173,23 @@ terminal_html = """
   }
   .smc-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px; border-bottom: 1px solid var(--tile-border); padding-bottom: 8px;
+    margin-bottom: 12px; border-bottom: 1px solid var(--tile-border); padding-bottom: 10px;
   }
   .smc-title { font-size: 14px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
 
-  /* SMC PANELS GRID */
+  /* TIMEFRAME TABS */
+  .tab-group { display: flex; gap: 6px; background: var(--tile-bg); padding: 3px; border-radius: 8px; border: 1px solid var(--card-border); }
+  .tab-btn {
+    border: none; background: transparent; color: var(--text-muted);
+    padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .tab-btn.active {
+    background: var(--tab-active-bg);
+    color: var(--tab-active-text);
+  }
+
+  /* SMC CARDS */
   .smc-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
   @media(min-width: 768px) { .smc-grid { grid-template-columns: 1fr 1fr; } }
 
@@ -194,29 +210,47 @@ terminal_html = """
   .param-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3px; font-weight: 600; }
   .param-val { font-size: 12px; font-weight: 700; font-family: monospace; }
 
-  .smc-detail { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
-  .smc-highlight { color: var(--text-primary); font-weight: 600; }
+  /* ORDER BLOCK CONTAINER */
+  .ob-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .ob-type { font-size: 11px; font-weight: 700; }
+  .ob-range { font-size: 11px; font-family: monospace; color: var(--text-muted); }
+  .ob-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
 
-  /* LOG CONSOLE */
+  .smc-detail { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+  /* AUDIT LOG WINDOW */
+  .console-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 14px; margin-bottom: 6px; font-size: 11px; font-weight: 700; color: var(--text-muted);
+  }
   .console-box {
-    margin-top: 14px;
     background: var(--log-bg);
     border-radius: 10px;
     padding: 10px 12px;
     font-family: monospace;
     font-size: 11px;
     color: var(--log-text);
-    height: 110px;
+    height: 120px;
     overflow-y: auto;
     border: 1px solid rgba(0, 0, 0, 0.1);
   }
   .log-line { margin-bottom: 4px; display: flex; gap: 8px; }
   .log-time { color: var(--text-muted); }
+  .log-tf { font-weight: 700; color: var(--neon-cyan); }
 </style>
 </head>
 <body>
 
-<!-- TOP HEADER -->
+<!-- TOP BAR -->
 <div class="header">
   <div class="header-left">
     <div class="pulse-dot"></div>
@@ -228,7 +262,7 @@ terminal_html = """
   </div>
 </div>
 
-<!-- LIVE CARDS -->
+<!-- LIVE METRICS GRID -->
 <div class="grid">
   <!-- BTC -->
   <div class="card" id="card-btc">
@@ -313,27 +347,41 @@ terminal_html = """
   </div>
 </div>
 
-<!-- SMC DETAILS & TRADE LOG WINDOW -->
+<!-- SMC MULTI-TIMEFRAME ANALYSIS & TABS -->
 <div class="smc-container">
   <div class="smc-header">
-    <div class="smc-title">🎯 SMC QUANT STRUCTURE & TRADE EXECUTION LOG</div>
-    <div style="font-size: 11px; color: var(--text-muted)">Auto Liquidity & OB Model</div>
+    <div class="smc-title">🎯 SMC & ORDER BLOCK (OB) SCANNER</div>
+    <div class="tab-group">
+      <button class="tab-btn active" id="tab-15m" onclick="switchTF('15m')">15M TF</button>
+      <button class="tab-btn" id="tab-5m" onclick="switchTF('5m')">5M TF</button>
+    </div>
   </div>
 
   <div class="smc-grid">
-    <!-- BTC SMC SETUP -->
+    <!-- BTC SMC PANEL -->
     <div class="smc-card">
       <div class="smc-card-top">
-        <span style="font-weight: 700; font-size: 13px;">BTCUSD Setup: <span id="btc-smc-state">ANALYZING</span></span>
+        <span style="font-weight: 700; font-size: 13px;">BTC (<span class="tf-label">15M</span>): <span id="btc-smc-state">SCANNING</span></span>
         <span class="setup-badge badge-wait" id="btc-badge">WAITING</span>
       </div>
+
+      <!-- ORDER BLOCK ZONE DETAILS -->
+      <div class="ob-panel">
+        <div>
+          <div class="ob-type" id="btc-ob-type">Scanning OB...</div>
+          <div class="ob-range" id="btc-ob-range">Zone: --</div>
+        </div>
+        <div class="ob-status badge-wait" id="btc-ob-status">UNTESTED</div>
+      </div>
+
+      <!-- TRADE SIGNALS -->
       <div class="trade-param-row">
         <div class="trade-param-box">
-          <div class="param-lbl">Signal / Action</div>
+          <div class="param-lbl">Action</div>
           <div class="param-val" id="btc-action">MONITOR</div>
         </div>
         <div class="trade-param-box">
-          <div class="param-lbl">Entry / Zone</div>
+          <div class="param-lbl">Entry / OB</div>
           <div class="param-val" id="btc-entry">--</div>
         </div>
         <div class="trade-param-box">
@@ -341,22 +389,33 @@ terminal_html = """
           <div class="param-val" style="color: var(--neon-red);" id="btc-sl">--</div>
         </div>
       </div>
-      <div class="smc-detail" id="btc-narrative">Scanning daily range equilibrium and liquidity pools...</div>
+      <div class="smc-detail" id="btc-narrative">Evaluating structure and liquidity...</div>
     </div>
 
-    <!-- ETH SMC SETUP -->
+    <!-- ETH SMC PANEL -->
     <div class="smc-card">
       <div class="smc-card-top">
-        <span style="font-weight: 700; font-size: 13px;">ETHUSD Setup: <span id="eth-smc-state">ANALYZING</span></span>
+        <span style="font-weight: 700; font-size: 13px;">ETH (<span class="tf-label">15M</span>): <span id="eth-smc-state">SCANNING</span></span>
         <span class="setup-badge badge-wait" id="eth-badge">WAITING</span>
       </div>
+
+      <!-- ORDER BLOCK ZONE DETAILS -->
+      <div class="ob-panel">
+        <div>
+          <div class="ob-type" id="eth-ob-type">Scanning OB...</div>
+          <div class="ob-range" id="eth-ob-range">Zone: --</div>
+        </div>
+        <div class="ob-status badge-wait" id="eth-ob-status">UNTESTED</div>
+      </div>
+
+      <!-- TRADE SIGNALS -->
       <div class="trade-param-row">
         <div class="trade-param-box">
-          <div class="param-lbl">Signal / Action</div>
+          <div class="param-lbl">Action</div>
           <div class="param-val" id="eth-action">MONITOR</div>
         </div>
         <div class="trade-param-box">
-          <div class="param-lbl">Entry / Zone</div>
+          <div class="param-lbl">Entry / OB</div>
           <div class="param-val" id="eth-entry">--</div>
         </div>
         <div class="trade-param-box">
@@ -364,13 +423,17 @@ terminal_html = """
           <div class="param-val" style="color: var(--neon-red);" id="eth-sl">--</div>
         </div>
       </div>
-      <div class="smc-detail" id="eth-narrative">Scanning daily range equilibrium and liquidity pools...</div>
+      <div class="smc-detail" id="eth-narrative">Evaluating structure and liquidity...</div>
     </div>
   </div>
 
-  <!-- REAL-TIME CONSOLE AUDIT LOG -->
+  <!-- AUDIT LOGS -->
+  <div class="console-header">
+    <span>TIMEFRAME AUDIT LOGS (<span id="log-active-tf">15M</span>)</span>
+    <span style="font-size: 10px; cursor: pointer; color: var(--neon-cyan)" onclick="clearLogs()">Clear Logs</span>
+  </div>
   <div class="console-box" id="console-logs">
-    <div class="log-line"><span class="log-time">[SYSTEM]</span> SMC Execution Engine online. Listening to Delta Exchange tick feed...</div>
+    <div class="log-line"><span class="log-time">[INIT]</span> SMC Engine listening to Delta Websocket for 15M & 5M setups...</div>
   </div>
 </div>
 
@@ -390,6 +453,22 @@ terminal_html = """
     applyTheme(currentTheme);
   }
 
+  // ACTIVE TIMEFRAME STATE
+  let activeTF = '15m'; // '15m' or '5m'
+
+  function switchTF(tf) {
+    activeTF = tf;
+    document.getElementById('tab-15m').classList.toggle('active', tf === '15m');
+    document.getElementById('tab-5m').classList.toggle('active', tf === '5m');
+    document.querySelectorAll('.tf-label').forEach(el => el.innerText = tf.toUpperCase());
+    document.getElementById('log-active-tf').innerText = tf.toUpperCase();
+
+    // Re-render UI for selected timeframe
+    renderSMCUI('BTCUSD');
+    renderSMCUI('ETHUSD');
+    filterLogs();
+  }
+
   // CLOCK
   function updateClock() {
     const now = new Date();
@@ -398,29 +477,59 @@ terminal_html = """
   setInterval(updateClock, 1000);
   updateClock();
 
-  // STATE DATA
+  // STATE MANAGEMENT
   const state = {
-    BTCUSD: { price: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 1, lastSignal: '' },
-    ETHUSD: { price: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 2, lastSignal: '' }
+    BTCUSD: {
+      price: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 1,
+      '15m': { action: 'MONITOR', state: 'SCANNING', obType: '--', obRange: '--', obStatus: 'UNTESTED', entry: '--', sl: '--', narrative: '', lastSignal: '' },
+      '5m':  { action: 'MONITOR', state: 'SCANNING', obType: '--', obRange: '--', obStatus: 'UNTESTED', entry: '--', sl: '--', narrative: '', lastSignal: '' }
+    },
+    ETHUSD: {
+      price: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 2,
+      '15m': { action: 'MONITOR', state: 'SCANNING', obType: '--', obRange: '--', obStatus: 'UNTESTED', entry: '--', sl: '--', narrative: '', lastSignal: '' },
+      '5m':  { action: 'MONITOR', state: 'SCANNING', obType: '--', obRange: '--', obStatus: 'UNTESTED', entry: '--', sl: '--', narrative: '', lastSignal: '' }
+    }
   };
+
+  const logsHistory = [];
 
   function fmt(val, dec) {
     if(!val || isNaN(val)) return '--';
     return Number(val).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
   }
 
-  // LOG AUDIT FUNCTION
-  function addLog(msg) {
-    const box = document.getElementById('console-logs');
+  function addLog(tf, msg) {
     const now = new Date().toTimeString().split(' ')[0];
+    const logItem = { tf, text: msg, time: now };
+    logsHistory.push(logItem);
+    if (logsHistory.length > 80) logsHistory.shift();
+
+    if (activeTF === tf || tf === 'ALL') {
+      appendLogToBox(logItem);
+    }
+  }
+
+  function appendLogToBox(log) {
+    const box = document.getElementById('console-logs');
     const el = document.createElement('div');
     el.className = 'log-line';
-    el.innerHTML = `<span class="log-time">[${now}]</span> ${msg}`;
+    el.innerHTML = `<span class="log-time">[${log.time}]</span> <span class="log-tf">[${log.tf.toUpperCase()}]</span> ${log.text}`;
     box.appendChild(el);
     box.scrollTop = box.scrollHeight;
   }
 
-  // FETCH CANDLES
+  function filterLogs() {
+    const box = document.getElementById('console-logs');
+    box.innerHTML = '';
+    logsHistory.filter(l => l.tf === activeTF || l.tf === 'ALL').forEach(appendLogToBox);
+  }
+
+  function clearLogs() {
+    logsHistory.length = 0;
+    document.getElementById('console-logs').innerHTML = '<div class="log-line"><span class="log-time">[CLEARED]</span> Logs reset.</div>';
+  }
+
+  // FETCH CANDLE BASELINE (DAILY PDH/PDL)
   async function fetchDailyStats() {
     try {
       const symbols = ['BTCUSD', 'ETHUSD'];
@@ -439,84 +548,134 @@ terminal_html = """
           state[sym].cdh = parseFloat(today.high);
           state[sym].cdl = parseFloat(today.low);
 
-          updateUI(sym);
-          evaluateSMC(sym);
+          updateMetricsUI(sym);
+          evaluateSMC(sym, '15m');
+          evaluateSMC(sym, '5m');
         }
       }
     } catch(e) {
-      console.log("Stats fetch err", e);
+      console.log("Candles err", e);
     }
   }
 
-  // SMC LOGIC ENGINE
-  function evaluateSMC(sym) {
+  // MULTI-TIMEFRAME SMC & ORDER BLOCK CALCULATOR
+  function evaluateSMC(sym, tf) {
     const d = state[sym];
     if (!d.price || !d.pdh || !d.pdl) return;
 
-    const prefix = sym === 'BTCUSD' ? 'btc' : 'eth';
-    const equilibrium = (d.pdh + d.pdl) / 2; // 50% discount / premium level
+    const tfData = d[tf];
+    const eq = (d.pdh + d.pdl) / 2;
     const distToPDH = d.price - d.pdh;
     const distToPDL = d.price - d.pdl;
 
+    // Timeframe multipliers (5m is tighter and more reactive than 15m)
+    const factor = tf === '5m' ? 0.4 : 1.0;
+    const obBuffer = (d.price * (tf === '5m' ? 0.0015 : 0.0035));
+
     let action = 'MONITOR';
-    let badgeClass = 'badge-wait';
-    let statusText = 'IN RANGE';
+    let stateText = 'CONSOLIDATING';
+    let obType = '';
+    let obLow = 0, obHigh = 0;
+    let obStatus = 'UNTESTED';
     let entry = '--';
     let sl = '--';
     let narrative = '';
 
-    // RULE 1: Bearish Liquidity Sweep (Price sweeps PDH and rejects)
-    if (distToPDH >= 0 || (distToPDH > -50 && d.price < d.cdh)) {
+    // CASE 1: BEARISH SETUP (PDH Sweep / Premium Array)
+    if (distToPDH >= -(25 * factor)) {
       action = 'SELL / SHORT';
-      badgeClass = 'badge-sell';
-      statusText = 'PDH LIQUIDITY GRAB';
-      entry = `$${fmt(d.price, d.dec)}`;
-      sl = `$${fmt(Math.max(d.cdh, d.pdh) * 1.003, d.dec)}`;
-      narrative = `Liquidity swept above PDH ($${fmt(d.pdh, d.dec)}). Smart money hunting buy-stops. Expecting mitigation towards EQ ($${fmt(equilibrium, d.dec)}).`;
+      stateText = tf === '5m' ? '5M CHoCH CONFIRMED' : '15M PDH LIQUIDITY SWEEP';
+      obType = '🔴 Bearish Supply OB';
+      obHigh = Math.max(d.cdh, d.pdh);
+      obLow = obHigh - obBuffer;
+      entry = `$${fmt(obLow, d.dec)} - $${fmt(obHigh, d.dec)}`;
+      sl = `$${fmt(obHigh * 1.002, d.dec)}`;
+      obStatus = d.price >= obLow && d.price <= obHigh ? 'MITIGATING' : 'PENDING TAP';
+      narrative = `${tf.toUpperCase()} Supply Order Block created above PDH ($${fmt(d.pdh, d.dec)}). Target internal discount liquidity.`;
     }
-    // RULE 2: Bullish Liquidity Sweep (Price sweeps PDL and bounces)
-    else if (distToPDL <= 0 || (distToPDL < 50 && d.price > d.cdl)) {
+    // CASE 2: BULLISH SETUP (PDL Sweep / Discount Array)
+    else if (distToPDL <= (25 * factor)) {
       action = 'BUY / LONG';
-      badgeClass = 'badge-buy';
-      statusText = 'PDL LIQUIDITY GRAB';
-      entry = `$${fmt(d.price, d.dec)}`;
-      sl = `$${fmt(Math.min(d.cdl, d.pdl) * 0.997, d.dec)}`;
-      narrative = `Liquidity raided below PDL ($${fmt(d.pdl, d.dec)}). Sell stops mitigated. Targeting internal liquidity and PDH.`;
+      stateText = tf === '5m' ? '5M CHoCH BREAKOUT' : '15M PDL LIQUIDITY RAID';
+      obType = '🟢 Bullish Demand OB';
+      obLow = Math.min(d.cdl, d.pdl);
+      obHigh = obLow + obBuffer;
+      entry = `$${fmt(obLow, d.dec)} - $${fmt(obHigh, d.dec)}`;
+      sl = `$${fmt(obLow * 0.998, d.dec)}`;
+      obStatus = d.price >= obLow && d.price <= obHigh ? 'MITIGATING' : 'PENDING TAP';
+      narrative = `${tf.toUpperCase()} Demand Order Block established near PDL ($${fmt(d.pdl, d.dec)}). Target EQ ($${fmt(eq, d.dec)}).`;
     }
-    // RULE 3: Premium / Discount Equilibrium
+    // CASE 3: IN RANGE / EQUILIBRIUM
     else {
-      if (d.price > equilibrium) {
-        statusText = 'PREMIUM ZONE (BOS RETEST)';
-        action = 'WAIT SHORT';
-        narrative = `Price trading in Premium array (> 50% EQ). Look for Bearish Order Blocks around PDH for short confirmation.`;
+      if (d.price > eq) {
+        stateText = 'PREMIUM BOS RETEST';
+        action = tf === '5m' ? 'WAIT SHORT' : 'WATCH PREMIUM';
+        obType = 'Bearish Internal OB';
+        obHigh = d.price + obBuffer;
+        obLow = d.price;
+        entry = `Retest $${fmt(obHigh, d.dec)}`;
+        sl = `SL > $${fmt(d.pdh, d.dec)}`;
+        obStatus = 'INACTIVE';
+        narrative = `${tf.toUpperCase()} trading above 50% EQ range. High time-frame bears defending supply.`;
       } else {
-        statusText = 'DISCOUNT ZONE (OB REACTION)';
-        action = 'WAIT LONG';
-        narrative = `Price trading in Discount array (< 50% EQ). High probability bullish demand zone active near PDL.`;
+        stateText = 'DISCOUNT OB MITIGATION';
+        action = tf === '5m' ? 'WAIT LONG' : 'WATCH DISCOUNT';
+        obType = 'Bullish Internal OB';
+        obLow = d.price - obBuffer;
+        obHigh = d.price;
+        entry = `Pullback $${fmt(obLow, d.dec)}`;
+        sl = `SL < $${fmt(d.pdl, d.dec)}`;
+        obStatus = 'INACTIVE';
+        narrative = `${tf.toUpperCase()} testing discount array. Look for shift of character on 5m for entry.`;
       }
-      entry = `EQ: $${fmt(equilibrium, d.dec)}`;
-      sl = d.price > equilibrium ? `SL > $${fmt(d.pdh, d.dec)}` : `SL < $${fmt(d.pdl, d.dec)}`;
     }
 
-    // UPDATE SMC UI
-    document.getElementById(`${prefix}-smc-state`).innerText = statusText;
-    const badgeEl = document.getElementById(`${prefix}-badge`);
-    badgeEl.innerText = action;
-    badgeEl.className = `setup-badge ${badgeClass}`;
+    // UPDATE STATE
+    tfData.action = action;
+    tfData.state = stateText;
+    tfData.obType = obType;
+    tfData.obRange = `$${fmt(obLow, d.dec)} - $${fmt(obHigh, d.dec)}`;
+    tfData.obStatus = obStatus;
+    tfData.entry = entry;
+    tfData.sl = sl;
+    tfData.narrative = narrative;
 
-    document.getElementById(`${prefix}-action`).innerText = action;
-    document.getElementById(`${prefix}-entry`).innerText = entry;
-    document.getElementById(`${prefix}-sl`).innerText = sl;
-    document.getElementById(`${prefix}-narrative`).innerText = narrative;
+    // LOG IF SIGNAL SHIFTS
+    if (tfData.lastSignal !== action && action !== 'MONITOR') {
+      tfData.lastSignal = action;
+      addLog(tf, `<strong>${sym}</strong>: Signal shifted to <strong>${action}</strong> | OB: ${tfData.obRange}`);
+    }
 
-    // LOG TRIGGER
-    if (d.lastSignal !== action && action !== 'MONITOR') {
-      d.lastSignal = action;
-      addLog(`<strong>${sym}</strong> SMC trigger: <strong>${action}</strong> | Entry: ${entry} | SL: ${sl}`);
+    if (activeTF === tf) {
+      renderSMCUI(sym);
     }
   }
 
-  function updateUI(sym) {
+  function renderSMCUI(sym) {
+    const prefix = sym === 'BTCUSD' ? 'btc' : 'eth';
+    const tfData = state[sym][activeTF];
+
+    document.getElementById(`${prefix}-smc-state`).innerText = tfData.state;
+    const badge = document.getElementById(`${prefix}-badge`);
+    badge.innerText = tfData.action;
+    badge.className = `setup-badge ${tfData.action.includes('BUY') ? 'badge-buy' : tfData.action.includes('SELL') ? 'badge-sell' : 'badge-wait'}`;
+
+    // OB Fields
+    document.getElementById(`${prefix}-ob-type`).innerText = tfData.obType;
+    document.getElementById(`${prefix}-ob-range`).innerText = `Zone: ${tfData.obRange}`;
+    
+    const obStatEl = document.getElementById(`${prefix}-ob-status`);
+    obStatEl.innerText = tfData.obStatus;
+    obStatEl.className = `ob-status ${tfData.obStatus === 'MITIGATING' ? 'badge-buy' : 'badge-wait'}`;
+
+    // Values
+    document.getElementById(`${prefix}-action`).innerText = tfData.action;
+    document.getElementById(`${prefix}-entry`).innerText = tfData.entry;
+    document.getElementById(`${prefix}-sl`).innerText = tfData.sl;
+    document.getElementById(`${prefix}-narrative`).innerText = tfData.narrative;
+  }
+
+  function updateMetricsUI(sym) {
     const d = state[sym];
     const prefix = sym === 'BTCUSD' ? 'btc' : 'eth';
 
@@ -543,12 +702,12 @@ terminal_html = """
     }
   }
 
-  // DIRECT CLIENT WEBSOCKET
+  // DIRECT CLIENT WEBSOCKET STREAM
   function connectWS() {
     const ws = new WebSocket("wss://socket.india.delta.exchange");
 
     ws.onopen = () => {
-      addLog("Connected to Delta WebSocket live stream.");
+      addLog("ALL", "Delta live ticks connected. Real-time Multi-TF engine started.");
       ws.send(JSON.stringify({
         type: "subscribe",
         payload: {
@@ -578,18 +737,19 @@ terminal_html = """
           if (!d.cdh || newPrice > d.cdh) d.cdh = newPrice;
           if (!d.cdl || newPrice < d.cdl) d.cdl = newPrice;
 
-          evaluateSMC(sym);
+          evaluateSMC(sym, '15m');
+          evaluateSMC(sym, '5m');
         }
 
         if (msg.spot_price) d.spot = parseFloat(msg.spot_price);
         if (msg.volume) d.vol = parseFloat(msg.volume);
 
-        updateUI(sym);
+        updateMetricsUI(sym);
       }
     };
 
     ws.onclose = () => {
-      addLog("WebSocket disconnected. Retrying in 2 seconds...");
+      addLog("ALL", "Websocket dropped. Re-establishing link...");
       setTimeout(connectWS, 2000);
     };
   }
@@ -602,4 +762,4 @@ terminal_html = """
 </html>
 """
 
-components.html(terminal_html, height=920, scrolling=True)
+components.html(terminal_html, height=980, scrolling=True)
