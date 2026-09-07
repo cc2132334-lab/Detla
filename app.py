@@ -31,7 +31,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. ZERO-LAG TERMINAL WITH SFP + MSS DUAL WINDOW ---
+# --- 3. ZERO-LAG TERMINAL WITH GLASSMORPHIC DESK UI ---
 terminal_html = """
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -40,13 +40,13 @@ terminal_html = """
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Delta Terminal</title>
 <style>
-  /* LIGHT THEME (DEFAULT) */
+  /* LIGHT THEME (DEFAULT GLASS DESK) */
   :root[data-theme="light"] {
-    --bg-page: #f4f6fa;
-    --card-bg: #ffffff;
-    --card-border: #e2e8f0;
-    --tile-bg: #f8fafc;
-    --tile-border: #edf2f7;
+    --bg-page: #f1f5f9;
+    --card-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.85));
+    --card-border: rgba(226, 232, 240, 0.85);
+    --tile-bg: rgba(255, 255, 255, 0.85);
+    --tile-border: rgba(203, 213, 225, 0.5);
     --text-primary: #0f172a;
     --text-muted: #64748b;
     --neon-green: #059669;
@@ -57,8 +57,8 @@ terminal_html = """
     --clock-bg: #e0f2fe;
     --clock-border: #bae6fd;
     --clock-text: #0369a1;
-    --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    --pill-bg: #f8fafc;
+    --shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    --pill-bg: rgba(255, 255, 255, 0.8);
     --log-bg: #0f172a;
     --log-text: #38bdf8;
     --tab-active-bg: #0284c7;
@@ -67,13 +67,13 @@ terminal_html = """
     --step-done-border: #059669;
   }
 
-  /* DARK THEME */
+  /* DARK THEME (FROSTED GLASS DESK) */
   :root[data-theme="dark"] {
-    --bg-page: #080b11;
-    --card-bg: rgba(18, 24, 38, 0.85);
+    --bg-page: #080c14;
+    --card-bg: linear-gradient(135deg, rgba(18, 24, 38, 0.88), rgba(11, 15, 25, 0.8));
     --card-border: rgba(255, 255, 255, 0.08);
-    --tile-bg: rgba(255, 255, 255, 0.03);
-    --tile-border: rgba(255, 255, 255, 0.05);
+    --tile-bg: rgba(255, 255, 255, 0.04);
+    --tile-border: rgba(255, 255, 255, 0.06);
     --text-primary: #ffffff;
     --text-muted: #8b9bb4;
     --neon-green: #00f090;
@@ -84,7 +84,7 @@ terminal_html = """
     --clock-bg: rgba(0, 229, 255, 0.08);
     --clock-border: rgba(0, 229, 255, 0.2);
     --clock-text: #00e5ff;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
     --pill-bg: rgba(255, 255, 255, 0.03);
     --log-bg: #05070a;
     --log-text: #00e5ff;
@@ -95,103 +95,113 @@ terminal_html = """
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
-  body { background: var(--bg-page); color: var(--text-primary); padding: 12px; overflow-x: hidden; transition: background 0.2s ease, color 0.2s ease; padding-bottom: 60px; }
+  body { background: var(--bg-page); color: var(--text-primary); padding: 12px; overflow-x: hidden; transition: background 0.25s ease, color 0.25s ease; padding-bottom: 60px; }
 
+  /* HEADER */
   .header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 6px 4px 14px 4px; border-bottom: 1px solid var(--header-border); margin-bottom: 14px;
+    padding: 8px 6px 14px 6px; border-bottom: 1px solid var(--header-border); margin-bottom: 16px;
   }
   .header-left { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; letter-spacing: 0.8px; }
   .pulse-dot { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 8px var(--neon-green); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
 
   .header-right { display: flex; align-items: center; gap: 8px; }
-  .utc-clock { font-size: 11px; font-weight: 600; color: var(--clock-text); background: var(--clock-bg); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--clock-border); }
+  .utc-clock { font-size: 11px; font-weight: 600; color: var(--clock-text); background: var(--clock-bg); padding: 5px 8px; border-radius: 8px; border: 1px solid var(--clock-border); }
 
   .theme-toggle-btn {
     background: var(--tile-bg);
     border: 1px solid var(--card-border);
     color: var(--text-primary);
     font-size: 14px;
-    padding: 4px 9px;
-    border-radius: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
     cursor: pointer;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
   }
 
-  /* CARDS GRID */
-  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 16px; }
+  /* GLASS CARDS GRID */
+  .grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
   @media(min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
 
   .card {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 16px;
+    border-radius: 20px;
+    padding: 18px;
     box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     position: relative;
     overflow: hidden;
   }
   .card::before {
     content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
     background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-    opacity: 0.6;
+    opacity: 0.8;
   }
 
   .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
-  .coin-badge { font-size: 18px; font-weight: 800; }
-  .spot-tag { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .coin-badge { font-size: 18px; font-weight: 900; }
+  .spot-tag { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
 
   .price-box { text-align: right; }
-  .live-price { font-size: 26px; font-weight: 800; font-family: monospace; }
+  .live-price { font-size: 26px; font-weight: 900; font-family: monospace; }
   .price-up { color: var(--neon-green) !important; }
   .price-down { color: var(--neon-red) !important; }
 
   /* METRICS TILES */
-  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .tile {
     background: var(--tile-bg);
     border: 1px solid var(--tile-border);
-    border-radius: 10px;
-    padding: 10px;
+    border-radius: 12px;
+    padding: 10px 12px;
+    backdrop-filter: blur(8px);
   }
-  .tile-title { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-  .tile-val { font-size: 14px; font-weight: 700; font-family: monospace; }
+  .tile-title { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+  .tile-val { font-size: 14px; font-weight: 800; font-family: monospace; }
 
   /* DISTANCE TAGS */
   .dist-row { margin-top: 12px; display: flex; gap: 8px; }
   .dist-pill {
     flex: 1; display: flex; justify-content: space-between; align-items: center;
-    padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; font-family: monospace;
+    padding: 8px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; font-family: monospace;
     background: var(--pill-bg); border: 1px solid var(--card-border);
+    backdrop-filter: blur(8px);
   }
-  .dist-pos { color: var(--neon-green); font-weight: 700; }
-  .dist-neg { color: var(--neon-red); font-weight: 700; }
+  .dist-pos { color: var(--neon-green); }
+  .dist-neg { color: var(--neon-red); }
 
-  /* SHARED SMC & STRATEGY CONTAINER */
+  /* SHARED GLASS CONTAINERS */
   .section-container {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 16px;
+    border-radius: 20px;
+    padding: 18px;
     box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     margin-bottom: 16px;
   }
   .section-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px; border-bottom: 1px solid var(--tile-border); padding-bottom: 10px;
+    margin-bottom: 14px; border-bottom: 1px solid var(--tile-border); padding-bottom: 10px;
   }
   .section-title { font-size: 13.5px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
 
   /* TIMEFRAME TABS */
-  .tab-group { display: flex; gap: 6px; background: var(--tile-bg); padding: 3px; border-radius: 8px; border: 1px solid var(--card-border); }
+  .tab-group { display: flex; gap: 4px; background: var(--tile-bg); padding: 4px; border-radius: 10px; border: 1px solid var(--card-border); backdrop-filter: blur(10px); }
   .tab-btn {
     border: none; background: transparent; color: var(--text-muted);
-    padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 6px;
+    padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 7px;
     cursor: pointer; transition: all 0.2s ease;
   }
   .tab-btn.active {
     background: var(--tab-active-bg);
     color: var(--tab-active-text);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
 
   .smc-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -200,57 +210,58 @@ terminal_html = """
   .smc-card {
     background: var(--tile-bg);
     border: 1px solid var(--tile-border);
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 14px;
+    padding: 14px;
+    backdrop-filter: blur(10px);
   }
   .smc-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .setup-badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .setup-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
   .badge-buy { background: rgba(5, 150, 105, 0.15); color: var(--neon-green); border: 1px solid var(--neon-green); }
   .badge-sell { background: rgba(225, 29, 72, 0.15); color: var(--neon-red); border: 1px solid var(--neon-red); }
   .badge-wait { background: rgba(217, 119, 6, 0.15); color: var(--neon-yellow); border: 1px solid var(--neon-yellow); }
 
   .trade-param-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px; }
-  .trade-param-box { background: var(--card-bg); border: 1px solid var(--card-border); padding: 8px; border-radius: 8px; text-align: center; }
-  .param-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3px; font-weight: 600; }
-  .param-val { font-size: 12px; font-weight: 700; font-family: monospace; }
+  .trade-param-box { background: var(--card-bg); border: 1px solid var(--card-border); padding: 8px 6px; border-radius: 10px; text-align: center; }
+  .param-lbl { font-size: 9px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
+  .param-val { font-size: 11px; font-weight: 800; font-family: monospace; }
 
-  /* 4 STEPS PIPELINE UI FROM IMAGE */
+  /* 4 STEPS PIPELINE */
   .steps-pipeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
   .step-node {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 8px;
-    padding: 8px 6px;
+    padding: 7px 4px;
     text-align: center;
-    font-size: 10px;
+    font-size: 9.5px;
     transition: all 0.2s;
   }
   .step-node.active-step {
     background: var(--step-done-bg);
     border-color: var(--step-done-border);
-    font-weight: 700;
+    font-weight: 800;
   }
-  .step-node .step-num { font-size: 9px; color: var(--text-muted); display: block; margin-bottom: 2px; }
+  .step-node .step-num { font-size: 8.5px; color: var(--text-muted); display: block; margin-bottom: 2px; }
 
   .ob-panel {
     background: var(--card-bg);
     border: 1px solid var(--card-border);
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 8px 10px;
     margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  .ob-type { font-size: 11px; font-weight: 700; }
+  .ob-type { font-size: 11px; font-weight: 800; }
   .ob-range { font-size: 11px; font-family: monospace; color: var(--text-muted); }
-  .ob-status { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+  .ob-status { font-size: 9.5px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
 
   .detail-explanation {
     background: var(--card-bg);
     border-left: 3px solid var(--neon-cyan);
-    padding: 8px 10px;
-    border-radius: 4px;
+    padding: 9px 12px;
+    border-radius: 6px;
     font-size: 11px;
     line-height: 1.45;
     color: var(--text-muted);
@@ -264,7 +275,7 @@ terminal_html = """
   }
   .console-box {
     background: var(--log-bg);
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 10px 12px;
     font-family: monospace;
     font-size: 11px;
@@ -284,7 +295,7 @@ terminal_html = """
 <div class="header">
   <div class="header-left">
     <div class="pulse-dot"></div>
-    <span>DELTA QUANT ENGINE</span>
+    <span>GLASS DESK QUANT TERMINAL</span>
   </div>
   <div class="header-right">
     <div class="utc-clock" id="utc-clock">00:00:00 UTC</div>
@@ -450,7 +461,7 @@ terminal_html = """
   </div>
 </div>
 
-<!-- WINDOW 2: LIQUIDITY SWEEP (SFP) + MSS STRATEGY EXECUTION (NEW WINDOW FROM IMAGE) -->
+<!-- WINDOW 2: LIQUIDITY SWEEP (SFP) + MSS STRATEGY EXECUTION -->
 <div class="section-container">
   <div class="section-header">
     <div class="section-title">⚡ LIQUIDITY SWEEP (SFP) + MSS STRATEGY ENGINE</div>
@@ -468,7 +479,6 @@ terminal_html = """
         <span class="setup-badge badge-wait" id="btc-sfp-badge">NO SWEEP</span>
       </div>
 
-      <!-- 4-STEP PROGRESSION PIPELINE -->
       <div class="steps-pipeline">
         <div class="step-node active-step" id="btc-step-1">
           <span class="step-num">Step 1</span>Key Zone
@@ -484,7 +494,6 @@ terminal_html = """
         </div>
       </div>
 
-      <!-- TRADE EXECUTION PARAMS -->
       <div class="trade-param-row">
         <div class="trade-param-box">
           <div class="param-lbl">Signal</div>
@@ -511,7 +520,6 @@ terminal_html = """
         </div>
       </div>
 
-      <!-- EXPLANATION -->
       <div class="detail-explanation" id="btc-sfp-rationale">
         Waiting for institutional sweep at HTF key levels (PDH / PDL)...
       </div>
@@ -524,7 +532,6 @@ terminal_html = """
         <span class="setup-badge badge-wait" id="eth-sfp-badge">NO SWEEP</span>
       </div>
 
-      <!-- 4-STEP PROGRESSION PIPELINE -->
       <div class="steps-pipeline">
         <div class="step-node active-step" id="eth-step-1">
           <span class="step-num">Step 1</span>Key Zone
@@ -540,7 +547,6 @@ terminal_html = """
         </div>
       </div>
 
-      <!-- TRADE EXECUTION PARAMS -->
       <div class="trade-param-row">
         <div class="trade-param-box">
           <div class="param-lbl">Signal</div>
@@ -567,7 +573,6 @@ terminal_html = """
         </div>
       </div>
 
-      <!-- EXPLANATION -->
       <div class="detail-explanation" id="eth-sfp-rationale">
         Waiting for institutional sweep at HTF key levels (PDH / PDL)...
       </div>
@@ -794,7 +799,7 @@ terminal_html = """
     if (activeTF === tf) renderSMCUI(sym);
   }
 
-  // SFP + MSS STRATEGY ENGINE (WINDOW 2 - FROM IMAGE)
+  // SFP + MSS STRATEGY ENGINE (WINDOW 2)
   function evaluateSFPStrategy(sym, tf) {
     const d = state[sym];
     if (!d.price || !d.pdh || !d.pdl) return;
@@ -816,7 +821,7 @@ terminal_html = """
     let step = 1;
     let rationale = '';
 
-    // PATTERN A & B: BEARISH SFP + MSS (SWEEPS PDH / EQH)
+    // BEARISH SFP + MSS
     if (d.cdh > d.pdh && d.price < d.pdh) {
       step = 4;
       signal = 'SELL SHORT';
@@ -836,7 +841,7 @@ terminal_html = """
       rationale = `Price is sweeping PDH ($${fmt(d.pdh, d.dec)}) right now. Wait for Wick Rejection (SFP) and close below PDH to confirm breakout failure. Do not chase breakout.`;
     }
 
-    // PATTERN A & B: BULLISH SFP + MSS (SWEEPS PDL / EQL)
+    // BULLISH SFP + MSS
     else if (d.cdl < d.pdl && d.price > d.pdl) {
       step = 4;
       signal = 'BUY LONG';
@@ -922,7 +927,6 @@ terminal_html = """
     document.getElementById(`${prefix}-sfp-tp2`).innerText = sfp.tp2;
     document.getElementById(`${prefix}-sfp-rationale`).innerHTML = sfp.rationale;
 
-    // Update Step Pipeline nodes (1 to 4)
     for (let i = 1; i <= 4; i++) {
       const el = document.getElementById(`${prefix}-step-${i}`);
       el.classList.toggle('active-step', i <= sfp.step);
