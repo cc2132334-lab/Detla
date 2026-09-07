@@ -1,262 +1,350 @@
 import streamlit as st
-import websocket
-import json
-import threading
-import time
-import requests
-from datetime import datetime, timezone
+import streamlit.components.v1 as components
 
-# --- 1. PAGE CONFIGURATION ---
+# --- 1. FULL PAGE CONFIG ---
 st.set_page_config(
-    page_title="Delta Terminal - UTC Levels",
+    page_title="Delta Terminal v1.2.0",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. AGGRESSIVE CSS (NO STREAMLIT TOOLBARS / BUTTONS) ---
-hide_streamlit_ui = """
+# --- 2. KILL ALL STREAMLIT BARS / HEADERS / MANAGE APP ---
+st.markdown("""
 <style>
     header, header[data-testid="stHeader"] {display: none !important;}
     div[data-testid="stToolbar"] {display: none !important;}
     div[data-testid="stDecoration"] {display: none !important;}
-    #MainMenu {display: none !important;}
-    .stDeployButton {display: none !important;}
-    footer {display: none !important;}
-    div[data-testid="stStatusWidget"] {display: none !important;}
-    [data-testid="manage-app-button"] {display: none !important;}
-    button[title="Manage app"] {display: none !important;}
-    div[class*="viewerBadge"] {display: none !important;}
-    div[class*="manage-app"] {display: none !important;}
-    div[class*="StreamlitFloatingActions"] {display: none !important;}
+    #MainMenu, footer, div[data-testid="stStatusWidget"] {display: none !important;}
+    [data-testid="manage-app-button"], button[title="Manage app"], div[class*="viewerBadge"], div[class*="manage-app"] {display: none !important;}
     div[data-testid="stFloatingActions"] {display: none !important;}
-
     .block-container {
-        padding-top: 0.8rem !important;
-        padding-bottom: 0rem !important;
-        padding-left: 0.8rem !important;
-        padding-right: 0.8rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+    iframe {
+        border: none !important;
+        width: 100% !important;
+        height: 100vh !important;
     }
 </style>
-"""
-st.markdown(hide_streamlit_ui, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# --- 3. DATA STRUCTURE ---
-GLOBAL_DATA = {
-    "BTCUSD": {
-        "mark": 0.0, "spot": 0.0, "vol": 0.0,
-        "pdh": 0.0, "pdl": 0.0,
-        "cdh": 0.0, "cdl": 0.0,
-        "current_utc_day": None
-    },
-    "ETHUSD": {
-        "mark": 0.0, "spot": 0.0, "vol": 0.0,
-        "pdh": 0.0, "pdl": 0.0,
-        "cdh": 0.0, "cdl": 0.0,
-        "current_utc_day": None
-    }
-}
+# --- 3. HIGH-TECH FRONTEND TERMINAL (CLIENT-SIDE WEBSOCKET = ZERO LAG TICK BY TICK) ---
+terminal_html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Delta Terminal</title>
+<style>
+  :root {
+    --bg-dark: #080b11;
+    --card-bg: rgba(18, 24, 38, 0.7);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --neon-green: #00f090;
+    --neon-red: #ff3366;
+    --neon-cyan: #00e5ff;
+    --neon-yellow: #ffb800;
+    --text-primary: #ffffff;
+    --text-muted: #8b9bb4;
+  }
 
-API_BASE = "https://api.india.delta.exchange"
-WS_URL = "wss://socket.india.delta.exchange"
-SYMBOLS = ["BTCUSD", "ETHUSD"]
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; }
+  body { background: var(--bg-dark); color: var(--text-primary); padding: 12px; overflow-x: hidden; }
 
-# Fetch UTC 1D Candles (Yesterday PDH/PDL and Today's Open CDH/CDL)
-def sync_utc_daily_levels():
-    for sym in SYMBOLS:
-        try:
-            url = f"{API_BASE}/v2/history/candles"
-            params = {"symbol": sym, "resolution": "1d"}
-            res = requests.get(url, params=params, timeout=4).json()
-            candles = res.get("result", [])
-            
-            if len(candles) >= 2:
-                # candles[0] = Today's active candle (UTC)
-                # candles[1] = Yesterday's closed candle (UTC)
-                today_c = candles[0]
-                prev_c = candles[1]
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 12px 14px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 14px;
+  }
+  .header-left { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; letter-spacing: 1px; color: #fff; }
+  .pulse-dot { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 8px var(--neon-green); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+  .utc-clock { font-size: 12px; color: var(--neon-cyan); background: rgba(0, 229, 255, 0.08); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(0, 229, 255, 0.2); }
 
-                GLOBAL_DATA[sym]["pdh"] = float(prev_c.get("high", 0))
-                GLOBAL_DATA[sym]["pdl"] = float(prev_c.get("low", 0))
-                GLOBAL_DATA[sym]["cdh"] = float(today_c.get("high", 0))
-                GLOBAL_DATA[sym]["cdl"] = float(today_c.get("low", 0))
-                GLOBAL_DATA[sym]["current_utc_day"] = datetime.now(timezone.utc).date()
-        except Exception:
-            pass
+  /* CARDS */
+  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media(min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
 
-# Quick Ticker Snapshot for initial load
-def fetch_ticker_snapshot():
-    try:
-        res = requests.get(f"{API_BASE}/v2/tickers", timeout=4).json()
-        for item in res.get("result", []):
-            sym = item.get("symbol")
-            if sym in GLOBAL_DATA:
-                p = float(item.get("mark_price") or item.get("close") or 0)
-                GLOBAL_DATA[sym]["mark"] = p
-                GLOBAL_DATA[sym]["spot"] = float(item.get("spot_price") or 0)
-                GLOBAL_DATA[sym]["vol"] = float(item.get("volume") or item.get("turnover_24h") or 0)
-                # Ensure CDH / CDL baseline
-                if GLOBAL_DATA[sym]["cdh"] == 0.0:
-                    GLOBAL_DATA[sym]["cdh"] = p
-                    GLOBAL_DATA[sym]["cdl"] = p
-    except Exception:
-        pass
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+    opacity: 0.5;
+  }
 
-# Run initial fetch
-sync_utc_daily_levels()
-fetch_ticker_snapshot()
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .coin-meta { display: flex; align-items: center; gap: 8px; }
+  .coin-badge { font-size: 18px; font-weight: 800; }
+  .spot-tag { font-size: 11px; color: var(--text-muted); }
 
-# --- 4. WEBSOCKET LISTENER ---
-def on_message(ws, message):
-    try:
-        data = json.loads(message)
-        sym = data.get("symbol")
-        if sym in GLOBAL_DATA:
-            price = None
-            if "mark_price" in data and data["mark_price"]:
-                price = float(data["mark_price"])
-            elif "close" in data and data["close"]:
-                price = float(data["close"])
+  .price-box { text-align: right; }
+  .live-price { font-size: 26px; font-weight: 800; font-family: monospace; transition: color 0.15s ease; }
+  .price-up { color: var(--neon-green) !important; text-shadow: 0 0 12px rgba(0, 240, 144, 0.4); }
+  .price-down { color: var(--neon-red) !important; text-shadow: 0 0 12px rgba(255, 51, 102, 0.4); }
 
-            if price and price > 0:
-                GLOBAL_DATA[sym]["mark"] = price
-                # Update Today's live high and low dynamic ticks
-                if GLOBAL_DATA[sym]["cdh"] == 0 or price > GLOBAL_DATA[sym]["cdh"]:
-                    GLOBAL_DATA[sym]["cdh"] = price
-                if GLOBAL_DATA[sym]["cdl"] == 0 or price < GLOBAL_DATA[sym]["cdl"]:
-                    GLOBAL_DATA[sym]["cdl"] = price
+  /* LEVEL TILES */
+  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .tile {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 10px;
+  }
+  .tile-title { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tile-val { font-size: 14px; font-weight: 700; font-family: monospace; }
 
-            if "spot_price" in data and data["spot_price"]:
-                GLOBAL_DATA[sym]["spot"] = float(data["spot_price"])
-            if "volume" in data and data["volume"]:
-                GLOBAL_DATA[sym]["vol"] = float(data["volume"])
-    except Exception:
-        pass
+  /* DISTANCE TAGS */
+  .dist-row { margin-top: 12px; display: flex; gap: 8px; }
+  .dist-pill {
+    flex: 1; display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; font-family: monospace;
+    background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .dist-pos { color: var(--neon-green); }
+  .dist-neg { color: var(--neon-red); }
+</style>
+</head>
+<body>
 
-def on_open(ws):
-    payload = {
-        "type": "subscribe",
-        "payload": {
-            "channels": [
-                {"name": "v2/ticker", "symbols": SYMBOLS}
-            ]
+<div class="header">
+  <div class="header-left">
+    <div class="pulse-dot"></div>
+    <span>DELTA QUANT TICK FEED</span>
+  </div>
+  <div class="utc-clock" id="utc-clock">00:00:00 UTC</div>
+</div>
+
+<div class="grid">
+  <!-- BTC CARD -->
+  <div class="card" id="card-btc">
+    <div class="card-top">
+      <div>
+        <div class="coin-badge">🟠 BTC/USD</div>
+        <div class="spot-tag">Spot: <span id="btc-spot">--</span> | Vol: <span id="btc-vol">--</span></div>
+      </div>
+      <div class="price-box">
+        <div class="live-price" id="btc-price">Loading...</div>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="tile">
+        <div class="tile-title">Today High (UTC)</div>
+        <div class="tile-val" style="color: var(--neon-cyan);" id="btc-cdh">--</div>
+      </div>
+      <div class="tile">
+        <div class="tile-title">Today Low (UTC)</div>
+        <div class="tile-val" style="color: var(--neon-yellow);" id="btc-cdl">--</div>
+      </div>
+      <div class="tile">
+        <div class="tile-title">Prev Day High (PDH)</div>
+        <div class="tile-val" id="btc-pdh">--</div>
+      </div>
+      <div class="tile">
+        <div class="tile-title">Prev Day Low (PDL)</div>
+        <div class="tile-val" id="btc-pdl">--</div>
+      </div>
+    </div>
+
+    <div class="dist-row">
+      <div class="dist-pill">
+        <span style="color: var(--text-muted)">Dist to PDH:</span>
+        <span id="btc-dist-pdh">--</span>
+      </div>
+      <div class="dist-pill">
+        <span style="color: var(--text-muted)">Dist to PDL:</span>
+        <span id="btc-dist-pdl">--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ETH CARD -->
+  <div class="card" id="card-eth">
+    <div class="card-top">
+      <div>
+        <div class="coin-badge">🔷 ETH/USD</div>
+        <div class="spot-tag">Spot: <span id="eth-spot">--</span> | Vol: <span id="eth-vol">--</span></div>
+      </div>
+      <div class="price-box">
+        <div class="live-price" id="eth-price">Loading...</div>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="tile">
+        <div class="tile-title">Today High (UTC)</div>
+        <div class="tile-val" style="color: var(--neon-cyan);" id="eth-cdh">--</div>
+      </div>
+      <div class="tile">
+        <div class="tile-title">Today Low (UTC)</div>
+        <div class="tile-val" style="color: var(--neon-yellow);" id="eth-cdl">--</div>
+      </div>
+      <div class="tile">
+        <div class="tile-title">Prev Day High (PDH)</div>
+        <div class="tile-val" id="eth-pdh">--</div>
+      </div>
+      <div class="tile">
+        <div class="tile-title">Prev Day Low (PDL)</div>
+        <div class="tile-val" id="eth-pdl">--</div>
+      </div>
+    </div>
+
+    <div class="dist-row">
+      <div class="dist-pill">
+        <span style="color: var(--text-muted)">Dist to PDH:</span>
+        <span id="eth-dist-pdh">--</span>
+      </div>
+      <div class="dist-pill">
+        <span style="color: var(--text-muted)">Dist to PDL:</span>
+        <span id="eth-dist-pdl">--</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Clock update
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('utc-clock').innerText = now.toUTCString().split(' ')[4] + ' UTC';
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // State
+  const state = {
+    BTCUSD: { price: 0, last: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 1 },
+    ETHUSD: { price: 0, last: 0, spot: 0, vol: 0, cdh: 0, cdl: 0, pdh: 0, pdl: 0, dec: 2 }
+  };
+
+  function fmt(val, dec) {
+    if(!val || isNaN(val)) return '--';
+    return Number(val).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+
+  // Fetch PDH/PDL and Daily Baseline from Delta REST API
+  async function fetchDailyStats() {
+    try {
+      const symbols = ['BTCUSD', 'ETHUSD'];
+      for (const sym of symbols) {
+        // Delta sparklines/candles endpoint
+        const nowSec = Math.floor(Date.now() / 1000);
+        const startSec = nowSec - (86400 * 3);
+        const res = await fetch(`https://api.india.delta.exchange/v2/history/candles?resolution=1d&symbol=${sym}&start=${startSec}&end=${nowSec}`);
+        const data = await res.json();
+        
+        if (data.result && data.result.length >= 2) {
+          const today = data.result[0];
+          const yesterday = data.result[1];
+
+          state[sym].pdh = parseFloat(yesterday.high);
+          state[sym].pdl = parseFloat(yesterday.low);
+          state[sym].cdh = parseFloat(today.high);
+          state[sym].cdl = parseFloat(today.low);
+
+          updateUI(sym);
         }
+      }
+    } catch(e) {
+      console.log("Stats fetch err", e);
     }
-    ws.send(json.dumps(payload))
+  }
 
-def run_ws():
-    while True:
-        try:
-            ws = websocket.WebSocketApp(
-                WS_URL,
-                on_open=on_open,
-                on_message=on_message
-            )
-            ws.run_forever(ping_interval=20, ping_timeout=10)
-        except Exception:
-            time.sleep(2)
+  function updateUI(sym) {
+    const d = state[sym];
+    const prefix = sym === 'BTCUSD' ? 'btc' : 'eth';
 
-# Start WebSocket in background thread once
-if not hasattr(st, "_ws_started"):
-    st._ws_started = True
-    t = threading.Thread(target=run_ws, daemon=True)
-    t.start()
+    // PDH / PDL / CDH / CDL
+    if (d.pdh) document.getElementById(`${prefix}-pdh`).innerText = '$' + fmt(d.pdh, d.dec);
+    if (d.pdl) document.getElementById(`${prefix}-pdl`).innerText = '$' + fmt(d.pdl, d.dec);
+    if (d.cdh) document.getElementById(`${prefix}-cdh`).innerText = '$' + fmt(d.cdh, d.dec);
+    if (d.cdl) document.getElementById(`${prefix}-cdl`).innerText = '$' + fmt(d.cdl, d.dec);
 
-# --- 5. UI LAYOUT ---
-st.caption("⚡ DELTA LIVE TERMINAL (UTC SESSION)")
+    if (d.spot) document.getElementById(`${prefix}-spot`).innerText = '$' + fmt(d.spot, d.dec);
+    if (d.vol) document.getElementById(`${prefix}-vol`).innerText = fmt(d.vol, 0);
 
-# BTC Placeholders
-st.markdown("#### 🟠 BITCOIN (BTCUSD)")
-b_r1c1, b_r1c2, b_r1c3, b_r1c4 = st.columns(4)
-b_mark = b_r1c1.empty()
-b_today_hl = b_r1c2.empty()
-b_prev_hl = b_r1c3.empty()
-b_dist = b_r1c4.empty()
+    // Distance calculation
+    if (d.price && d.pdh) {
+      const diffPDH = d.price - d.pdh;
+      const elPDH = document.getElementById(`${prefix}-dist-pdh`);
+      elPDH.innerText = (diffPDH >= 0 ? '+' : '') + fmt(diffPDH, d.dec);
+      elPDH.className = diffPDH >= 0 ? 'dist-pos' : 'dist-neg';
+    }
 
-st.write("")
+    if (d.price && d.pdl) {
+      const diffPDL = d.price - d.pdl;
+      const elPDL = document.getElementById(`${prefix}-dist-pdl`);
+      elPDL.innerText = (diffPDL >= 0 ? '+' : '') + fmt(diffPDL, d.dec);
+      elPDL.className = diffPDL >= 0 ? 'dist-pos' : 'dist-neg';
+    }
+  }
 
-# ETH Placeholders
-st.markdown("#### 🔷 ETHEREUM (ETHUSD)")
-e_r1c1, e_r1c2, e_r1c3, e_r1c4 = st.columns(4)
-e_mark = e_r1c1.empty()
-e_today_hl = e_r1c2.empty()
-e_prev_hl = e_r1c3.empty()
-e_dist = e_r1c4.empty()
+  // Connect Direct Client WebSocket for ZERO LAG
+  function connectWS() {
+    const ws = new WebSocket("wss://socket.india.delta.exchange");
 
-# --- 6. CONTINUOUS TICK REFRESH LOOP ---
-last_sync_time = time.time()
+    ws.onopen = () => {
+      ws.send(JSON.stringify({
+        type: "subscribe",
+        payload: {
+          channels: [{ name: "v2/ticker", symbols: ["BTCUSD", "ETHUSD"] }]
+        }
+      }));
+    };
 
-while True:
-    # Auto re-sync candles once every 5 minutes (or on 00:00 UTC day rollover)
-    now_utc = datetime.now(timezone.utc)
-    if time.time() - last_sync_time > 300:
-        sync_utc_daily_levels()
-        last_sync_time = time.time()
+    ws.onmessage = (evt) => {
+      const msg = JSON.parse(evt.data);
+      const sym = msg.symbol;
+      if (sym && state[sym]) {
+        const d = state[sym];
+        const newPrice = parseFloat(msg.mark_price || msg.close || 0);
 
-    # --- Render BTC ---
-    b = GLOBAL_DATA["BTCUSD"]
-    b_price = b["mark"]
-    b_pdh = b["pdh"]
-    b_pdl = b["pdl"]
+        if (newPrice > 0) {
+          const pEl = document.getElementById(sym === 'BTCUSD' ? 'btc-price' : 'eth-price');
+          
+          // Tick Animation Flash
+          if (d.price && newPrice !== d.price) {
+            pEl.classList.remove('price-up', 'price-down');
+            void pEl.offsetWidth; // trigger reflow
+            pEl.classList.add(newPrice > d.price ? 'price-up' : 'price-down');
+          }
 
-    b_dist_pdh = b_price - b_pdh if (b_price and b_pdh) else 0
-    b_dist_pdl = b_price - b_pdl if (b_price and b_pdl) else 0
+          d.price = newPrice;
+          pEl.innerText = '$' + fmt(newPrice, d.dec);
 
-    b_mark.metric(
-        "Live Price (Mark)",
-        f"${b_price:,.1f}",
-        delta=f"Spot: ${b['spot']:,.1f}"
-    )
-    b_today_hl.metric(
-        "Today High / Low (UTC)",
-        f"${b['cdh']:,.1f}",
-        delta=f"Low: ${b['cdl']:,.1f}",
-        delta_color="off"
-    )
-    b_prev_hl.metric(
-        "PDH / PDL (UTC)",
-        f"${b_pdh:,.1f}",
-        delta=f"PDL: ${b_pdl:,.1f}",
-        delta_color="off"
-    )
-    b_dist.metric(
-        "Distance to PDH / PDL",
-        f"{b_dist_pdh:+,.1f} to PDH",
-        delta=f"{b_dist_pdl:+,.1f} to PDL",
-        delta_color="normal"
-    )
+          // Dynamic CDH/CDL
+          if (!d.cdh || newPrice > d.cdh) d.cdh = newPrice;
+          if (!d.cdl || newPrice < d.cdl) d.cdl = newPrice;
+        }
 
-    # --- Render ETH ---
-    e = GLOBAL_DATA["ETHUSD"]
-    e_price = e["mark"]
-    e_pdh = e["pdh"]
-    e_pdl = e["pdl"]
+        if (msg.spot_price) d.spot = parseFloat(msg.spot_price);
+        if (msg.volume) d.vol = parseFloat(msg.volume);
 
-    e_dist_pdh = e_price - e_pdh if (e_price and e_pdh) else 0
-    e_dist_pdl = e_price - e_pdl if (e_price and e_pdl) else 0
+        updateUI(sym);
+      }
+    };
 
-    e_mark.metric(
-        "Live Price (Mark)",
-        f"${e_price:,.2f}",
-        delta=f"Spot: ${e['spot']:,.2f}"
-    )
-    e_today_hl.metric(
-        "Today High / Low (UTC)",
-        f"${e['cdh']:,.2f}",
-        delta=f"Low: ${e['cdl']:,.2f}",
-        delta_color="off"
-    )
-    e_prev_hl.metric(
-        "PDH / PDL (UTC)",
-        f"${e_pdh:,.2f}",
-        delta=f"PDL: ${e_pdl:,.2f}",
-        delta_color="off"
-    )
-    e_dist.metric(
-        "Distance to PDH / PDL",
-        f"{e_dist_pdh:+,.2f} to PDH",
-        delta=f"{e_dist_pdl:+,.2f} to PDL",
-        delta_color="normal"
-    )
+    ws.onclose = () => setTimeout(connectWS, 2000);
+  }
 
-    time.sleep(0.15)
+  fetchDailyStats();
+  setInterval(fetchDailyStats, 60000); // 1-minute auto sync
+  connectWS();
+</script>
+</body>
+</html>
+"""
+
+components.html(terminal_html, height=750, scrolling=False)
