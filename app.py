@@ -58,6 +58,7 @@ terminal_html = r"""
  --shadow:0 14px 38px rgba(0,0,0,.34);
  --nav:#09111b;
  --console:#03070c;
+ --chart-bg:rgba(3,7,12,0.45);
 }
 
 :root[data-theme="light"]{
@@ -78,6 +79,7 @@ terminal_html = r"""
  --shadow:0 12px 30px rgba(15,23,42,.08);
  --nav:#ffffff;
  --console:#0b1220;
+ --chart-bg:rgba(241,245,249,0.7);
 }
 
 *{
@@ -261,24 +263,21 @@ button{font:inherit}
 .price-down{color:var(--red)!important}
 .price-change{font:800 10px monospace;color:var(--red);margin-top:3px}
 
-.mini-chart{
- height:30px;
- margin:12px 0 10px;
- border-radius:8px;
- background:linear-gradient(180deg,rgba(255,255,255,.025),transparent);
+/* LIVE CHART CANVAS */
+.chart-container{
+ height:62px;
+ width:100%;
+ margin:10px 0 10px;
+ border-radius:10px;
+ background:var(--chart-bg);
+ border:1px solid var(--border);
  position:relative;
  overflow:hidden;
 }
-.mini-chart:after{
- content:"⌁⌁⌁⌁⌁⌁⌁";
- position:absolute;
- left:10%;
- top:0;
- font-size:25px;
- letter-spacing:7px;
- color:var(--red);
- opacity:.75;
- transform:rotate(-2deg);
+.chart-container canvas{
+ width:100%;
+ height:100%;
+ display:block;
 }
 
 .metrics-grid{
@@ -654,7 +653,12 @@ button{font:inherit}
      <div class="price-change" id="btc-change">LIVE</div>
     </div>
    </div>
-   <div class="mini-chart"></div>
+   
+   <!-- REAL-TIME MINI CHART -->
+   <div class="chart-container">
+    <canvas id="btc-chart"></canvas>
+   </div>
+
    <div class="metrics-grid">
     <div class="metric"><div class="metric-label">PDH</div><div class="metric-value cyan" id="btc-pdh">--</div></div>
     <div class="metric"><div class="metric-label">PDL</div><div class="metric-value yellow" id="btc-pdl">--</div></div>
@@ -665,7 +669,7 @@ button{font:inherit}
     <div class="metric"><div class="metric-label">Today High</div><div class="metric-value cyan" id="btc-cdh">--</div></div>
     <div class="metric"><div class="metric-label">Today Low</div><div class="metric-value yellow" id="btc-cdl">--</div></div>
     <div class="metric"><div class="metric-label">Market</div><div class="metric-value green">LIVE</div></div>
-    <div class="metric"><div class="metric-label">Feed</div><div class="metric-value green">WS</div></div>
+    <div class="metric"><div class="metric-label">Feed</div><div class="metric-value green">TICK</div></div>
    </div>
   </div>
 
@@ -683,7 +687,12 @@ button{font:inherit}
      <div class="price-change" id="eth-change">LIVE</div>
     </div>
    </div>
-   <div class="mini-chart"></div>
+
+   <!-- REAL-TIME MINI CHART -->
+   <div class="chart-container">
+    <canvas id="eth-chart"></canvas>
+   </div>
+
    <div class="metrics-grid">
     <div class="metric"><div class="metric-label">PDH</div><div class="metric-value cyan" id="eth-pdh">--</div></div>
     <div class="metric"><div class="metric-label">PDL</div><div class="metric-value yellow" id="eth-pdl">--</div></div>
@@ -694,7 +703,7 @@ button{font:inherit}
     <div class="metric"><div class="metric-label">Today High</div><div class="metric-value cyan" id="eth-cdh">--</div></div>
     <div class="metric"><div class="metric-label">Today Low</div><div class="metric-value yellow" id="eth-cdl">--</div></div>
     <div class="metric"><div class="metric-label">Market</div><div class="metric-value green">LIVE</div></div>
-    <div class="metric"><div class="metric-label">Feed</div><div class="metric-value green">WS</div></div>
+    <div class="metric"><div class="metric-label">Feed</div><div class="metric-value green">TICK</div></div>
    </div>
   </div>
 
@@ -912,6 +921,7 @@ updateClock();
 const state={
  BTCUSD:{
   price:0,spot:0,vol:0,cdh:0,cdl:0,pdh:0,pdl:0,dec:1,
+  history:[],
   '15m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
   '5m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
   sfp_15m:{signal:'WAIT',badge:'NO SWEEP',entry:'--',sl:'--',tp1:'--',tp2:'--',step:1,rationale:'',lastSig:''},
@@ -919,6 +929,7 @@ const state={
  },
  ETHUSD:{
   price:0,spot:0,vol:0,cdh:0,cdl:0,pdh:0,pdl:0,dec:2,
+  history:[],
   '15m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
   '5m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
   sfp_15m:{signal:'WAIT',badge:'NO SWEEP',entry:'--',sl:'--',tp1:'--',tp2:'--',step:1,rationale:'',lastSig:''},
@@ -961,6 +972,120 @@ function clearLogs(){
  document.getElementById('console-logs').innerHTML='<div class="log-line"><span class="log-time">[CLEARED]</span> Logs reset.</div>';
 }
 
+/* =====================================
+   LIVE MINI CHART ENGINE (CANVAS)
+   ===================================== */
+function drawLiveChart(sym){
+ const canvas=document.getElementById(sym==='BTCUSD'?'btc-chart':'eth-chart');
+ if(!canvas) return;
+ const ctx=canvas.getContext('2d');
+ const d=state[sym];
+
+ const rect=canvas.parentElement.getBoundingClientRect();
+ if(canvas.width!==rect.width||canvas.height!==rect.height){
+  canvas.width=rect.width;
+  canvas.height=rect.height;
+ }
+
+ const w=canvas.width;
+ const h=canvas.height;
+ ctx.clearRect(0,0,w,h);
+
+ const hist=d.history;
+ if(!hist||hist.length<2) return;
+
+ let min=Math.min(...hist);
+ let max=Math.max(...hist);
+ if(d.pdh&&d.pdh>max) max=d.pdh;
+ if(d.pdl&&d.pdl<min) min=d.pdl;
+
+ const pad=(max-min)*0.08||1;
+ min-=pad;
+ max+=pad;
+
+ const getY=(val)=>h-((val-min)/(max-min))*(h-12)-6;
+ const getX=(idx)=>(idx/(hist.length-1))*(w-16)+8;
+
+ // Draw PDH Reference Line
+ if(d.pdh&&d.pdh>=min&&d.pdh<=max){
+  const yPDH=getY(d.pdh);
+  ctx.save();
+  ctx.setLineDash([3,3]);
+  ctx.strokeStyle='rgba(0,217,255,0.45)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,yPDH);
+  ctx.lineTo(w,yPDH);
+  ctx.stroke();
+  ctx.fillStyle='rgba(0,217,255,0.7)';
+  ctx.font='7.5px monospace';
+  ctx.fillText('PDH',4,yPDH-2);
+  ctx.restore();
+ }
+
+ // Draw PDL Reference Line
+ if(d.pdl&&d.pdl>=min&&d.pdl<=max){
+  const yPDL=getY(d.pdl);
+  ctx.save();
+  ctx.setLineDash([3,3]);
+  ctx.strokeStyle='rgba(255,189,60,0.45)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,yPDL);
+  ctx.lineTo(w,yPDL);
+  ctx.stroke();
+  ctx.fillStyle='rgba(255,189,60,0.7)';
+  ctx.font='7.5px monospace';
+  ctx.fillText('PDL',4,yPDL+8);
+  ctx.restore();
+ }
+
+ // Price Curve Path
+ ctx.beginPath();
+ for(let i=0;i<hist.length;i++){
+  const x=getX(i);
+  const y=getY(hist[i]);
+  if(i===0) ctx.moveTo(x,y);
+  else ctx.lineTo(x,y);
+ }
+
+ const isUp=hist[hist.length-1]>=hist[0];
+ const strokeColor=isUp?'#00e59a':'#ff426b';
+
+ // Area Gradient Fill
+ ctx.save();
+ const grad=ctx.createLinearGradient(0,0,0,h);
+ grad.addColorStop(0,isUp?'rgba(0,229,154,0.22)':'rgba(255,66,107,0.22)');
+ grad.addColorStop(1,'transparent');
+ ctx.lineTo(getX(hist.length-1),h);
+ ctx.lineTo(getX(0),h);
+ ctx.closePath();
+ ctx.fillStyle=grad;
+ ctx.fill();
+ ctx.restore();
+
+ // Line Stroke
+ ctx.save();
+ ctx.strokeStyle=strokeColor;
+ ctx.lineWidth=1.8;
+ ctx.shadowColor=strokeColor;
+ ctx.shadowBlur=4;
+ ctx.stroke();
+ ctx.restore();
+
+ // Head Glow Dot
+ const lastX=getX(hist.length-1);
+ const lastY=getY(hist[hist.length-1]);
+ ctx.save();
+ ctx.beginPath();
+ ctx.arc(lastX,lastY,3,0,Math.PI*2);
+ ctx.fillStyle=strokeColor;
+ ctx.shadowColor=strokeColor;
+ ctx.shadowBlur=8;
+ ctx.fill();
+ ctx.restore();
+}
+
 /* =========================
    ORIGINAL DAILY CANDLE DATA
    ========================= */
@@ -982,7 +1107,13 @@ async function fetchDailyStats(){
     state[sym].cdh=parseFloat(today.high);
     state[sym].cdl=parseFloat(today.low);
 
+    if(!state[sym].history||state[sym].history.length===0){
+     const base=parseFloat(today.close||yesterday.close);
+     state[sym].history=[state[sym].cdl,base,state[sym].cdh,base];
+    }
+
     updateMetricsUI(sym);
+    drawLiveChart(sym);
     evaluateSMC(sym,'15m');
     evaluateSMC(sym,'5m');
     evaluateSFPStrategy(sym,'15m');
@@ -1236,69 +1367,21 @@ function updateMetricsUI(sym){
  if(side)side.innerText='$'+fmt(d.price,d.dec);
 }
 
-/* =========================
-   0.5 SEC FAST REFRESH ENGINE
-   ========================= */
-async function fetchLiveTickers(){
- try{
-  const res=await fetch("https://api.india.delta.exchange/v2/tickers");
-  const data=await res.json();
-  if(data.result){
-   data.result.forEach(item=>{
-    const sym=item.symbol;
-    if(sym&&state[sym]){
-     const d=state[sym];
-     const newPrice=parseFloat(item.mark_price||item.close||0);
-
-     if(newPrice>0){
-      const pEl=document.getElementById(sym==='BTCUSD'?'btc-price':'eth-price');
-
-      if(d.price&&newPrice!==d.price){
-       pEl.classList.remove('price-up','price-down');
-       void pEl.offsetWidth;
-       pEl.classList.add(newPrice>d.price?'price-up':'price-down');
-      }
-
-      d.price=newPrice;
-      pEl.innerText='$'+fmt(newPrice,d.dec);
-
-      if(!d.cdh||newPrice>d.cdh)d.cdh=newPrice;
-      if(!d.cdl||newPrice<d.cdl)d.cdl=newPrice;
-
-      const chEl=document.getElementById(sym==='BTCUSD'?'btc-change':'eth-change');
-      if(chEl){
-       chEl.innerText='LIVE • '+new Date().toLocaleTimeString();
-       chEl.className='price-change '+(d.price>=newPrice?'price-up':'price-down');
-      }
-
-      evaluateSMC(sym,'15m');
-      evaluateSMC(sym,'5m');
-      evaluateSFPStrategy(sym,'15m');
-      evaluateSFPStrategy(sym,'5m');
-     }
-
-     if(item.spot_price)d.spot=parseFloat(item.spot_price);
-     if(item.volume)d.vol=parseFloat(item.volume);
-
-     updateMetricsUI(sym);
-    }
-   });
-  }
- }catch(e){}
-}
-
-/* =========================
-   ORIGINAL DIRECT CLIENT WEBSOCKET
-   ========================= */
+/* ===================================================
+   ZERO-LAG WEBSOCKET (ALL_TRADES + V2/TICKER ENGINE)
+   =================================================== */
 function connectWS(){
  const ws=new WebSocket("wss://socket.india.delta.exchange");
 
  ws.onopen=()=>{
-  addLog("ALL","Delta live ticks connected. SFP & MSS execution ready.");
+  addLog("ALL","Delta live ticks connected. Real-time stream active.");
   ws.send(JSON.stringify({
    type:"subscribe",
    payload:{
-    channels:[{name:"v2/ticker",symbols:["BTCUSD","ETHUSD"]}]
+    channels:[
+      {name:"v2/ticker",symbols:["BTCUSD","ETHUSD"]},
+      {name:"all_trades",symbols:["BTCUSD","ETHUSD"]}
+    ]
    }
   }));
  };
@@ -1309,7 +1392,7 @@ function connectWS(){
 
   if(sym&&state[sym]){
    const d=state[sym];
-   const newPrice=parseFloat(msg.mark_price||msg.close||0);
+   const newPrice=parseFloat(msg.price||msg.mark_price||msg.close||0);
 
    if(newPrice>0){
     const pEl=document.getElementById(sym==='BTCUSD'?'btc-price':'eth-price');
@@ -1323,12 +1406,17 @@ function connectWS(){
     d.price=newPrice;
     pEl.innerText='$'+fmt(newPrice,d.dec);
 
+    if(!d.history) d.history=[];
+    d.history.push(newPrice);
+    if(d.history.length>45) d.history.shift();
+    drawLiveChart(sym);
+
     if(!d.cdh||newPrice>d.cdh)d.cdh=newPrice;
     if(!d.cdl||newPrice<d.cdl)d.cdl=newPrice;
 
     const chEl=document.getElementById(sym==='BTCUSD'?'btc-change':'eth-change');
     if(chEl){
-     chEl.innerText='LIVE • '+new Date().toLocaleTimeString();
+     chEl.innerText='TICK • '+new Date().toLocaleTimeString();
      chEl.className='price-change '+(d.price>=newPrice?'price-up':'price-down');
     }
 
@@ -1346,17 +1434,17 @@ function connectWS(){
  };
 
  ws.onclose=()=>{
-  addLog("ALL","Websocket connection dropped. Reconnecting...");
-  setTimeout(connectWS,2000);
+  addLog("ALL","Websocket dropped. Reconnecting...");
+  setTimeout(connectWS,1500);
  };
 }
 
+// Keep connection hot with ping
+setInterval(()=>{
+  fetchDailyStats();
+}, 60000);
+
 fetchDailyStats();
-setInterval(fetchDailyStats,60000);
-
-fetchLiveTickers();
-setInterval(fetchLiveTickers,500);
-
 connectWS();
 </script>
 </body>
