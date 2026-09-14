@@ -37,7 +37,7 @@ terminal_html = r"""
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Delta Terminal</title>
+<title>DELTAEXCHANGE TERMINAL</title>
 
 <style>
 :root[data-theme="dark"]{
