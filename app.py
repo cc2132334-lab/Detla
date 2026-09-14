@@ -699,7 +699,7 @@ button{font:inherit}
 
 <header class="header">
  <div class="brand">
-  <div class="logo">⚡🚀⚡️</div>
+  <div class="logo">🚀</div>
   <div>
    <div class="brand-title">DELTEXCHANGE TERMINAL</div>
    <div class="brand-sub">QUANT TRADING DESK • SFP + MSS ENGINE</div>
