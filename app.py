@@ -58,7 +58,7 @@ terminal_html = r"""
  --shadow:0 14px 38px rgba(0,0,0,.34);
  --nav:#09111b;
  --console:#03070c;
- --chart-bg:rgba(4,8,15,0.75);
+ --chart-bg:rgba(4,8,15,0.85);
 }
 
 :root[data-theme="light"]{
@@ -79,7 +79,7 @@ terminal_html = r"""
  --shadow:0 12px 30px rgba(15,23,42,.08);
  --nav:#ffffff;
  --console:#0b1220;
- --chart-bg:rgba(241,245,249,0.85);
+ --chart-bg:rgba(241,245,249,0.9);
 }
 
 *{
@@ -271,7 +271,7 @@ button{font:inherit}
 
 /* DYNAMIC CANDLESTICK CHART CONTAINER */
 .chart-container{
- height:150px;
+ height:180px;
  width:100%;
  margin:12px 0 12px;
  border-radius:12px;
@@ -279,7 +279,7 @@ button{font:inherit}
  border:1px solid var(--border);
  position:relative;
  overflow:hidden;
- box-shadow:inset 0 0 18px rgba(0,0,0,0.28);
+ box-shadow:inset 0 0 18px rgba(0,0,0,0.35);
 }
 .chart-container canvas{
  width:100%;
@@ -562,7 +562,7 @@ button{font:inherit}
  .market-grid{grid-template-columns:1fr;gap:9px}
  .market-card{padding:13px;border-radius:17px}
  .live-price{font-size:20px}
- .chart-container{height:135px}
+ .chart-container{height:165px}
  .metrics-grid{grid-template-columns:repeat(4,1fr)}
  .metric{padding:7px 5px}
  .metric-label{font-size:7px}
@@ -616,7 +616,7 @@ button{font:inherit}
  .metric-label{font-size:6.5px}
  .metric-value{font-size:8px}
  .live-price{font-size:18px}
- .chart-container{height:120px}
+ .chart-container{height:150px}
  .section-title{font-size:9px}
 }
 </style>
@@ -655,7 +655,7 @@ button{font:inherit}
     <div class="asset">
      <div class="asset-icon">🟠</div>
      <div>
-      <div class="asset-name">BTC/USD</div>
+      <div class="asset-name">BTC/USD (5M)</div>
       <div class="spot">Spot: <span id="btc-spot">--</span> • Vol: <span id="btc-vol">--</span></div>
      </div>
     </div>
@@ -665,7 +665,7 @@ button{font:inherit}
     </div>
    </div>
    
-   <!-- REAL-TIME CANDLESTICK CHART -->
+   <!-- REAL-TIME 5M CANDLESTICK CHART -->
    <div class="chart-container">
     <canvas id="btc-chart"></canvas>
    </div>
@@ -689,7 +689,7 @@ button{font:inherit}
     <div class="asset">
      <div class="asset-icon">🔷</div>
      <div>
-      <div class="asset-name">ETH/USD</div>
+      <div class="asset-name">ETH/USD (5M)</div>
       <div class="spot">Spot: <span id="eth-spot">--</span> • Vol: <span id="eth-vol">--</span></div>
      </div>
     </div>
@@ -699,7 +699,7 @@ button{font:inherit}
     </div>
    </div>
 
-   <!-- REAL-TIME CANDLESTICK CHART -->
+   <!-- REAL-TIME 5M CANDLESTICK CHART -->
    <div class="chart-container">
     <canvas id="eth-chart"></canvas>
    </div>
@@ -983,9 +983,9 @@ function clearLogs(){
  document.getElementById('console-logs').innerHTML='<div class="log-line"><span class="log-time">[CLEARED]</span> Logs reset.</div>';
 }
 
-/* =======================================================
-   REAL-TIME CANDLESTICK CHART RENDERER (OHLC + PDH / PDL)
-   ======================================================= */
+/* =========================================================================
+   ZOOMED 5M CANDLESTICK ENGINE (PROPER CANDLE BODIES & INDEPENDENT SCALE)
+   ========================================================================= */
 function drawLiveChart(sym){
  const canvas=document.getElementById(sym==='BTCUSD'?'btc-chart':'eth-chart');
  if(!canvas) return;
@@ -1005,7 +1005,7 @@ function drawLiveChart(sym){
  const candles=d.candles;
  if(!candles||candles.length===0) return;
 
- // Calculate high/low range
+ // 1. SCALE DIRECTLY ON CANDLE EXTREMES (NEVER COMPRESS CANDLES FOR DISTANT PDL/PDH)
  let min=Infinity;
  let max=-Infinity;
  for(const c of candles){
@@ -1013,19 +1013,21 @@ function drawLiveChart(sym){
   if(c.high>max) max=c.high;
  }
 
- // Include PDH and PDL levels in view range if close
- if(d.pdh&&d.pdh>max) max=d.pdh;
- if(d.pdl&&d.pdl<min) min=d.pdl;
+ if(d.price>0){
+  if(d.price<min) min=d.price;
+  if(d.price>max) max=d.price;
+ }
 
- const pad=(max-min)*0.08||1;
+ // Provide comfortable 15% breathing room top and bottom
+ const pad=Math.max((max-min)*0.15, (min*0.0008));
  min-=pad;
  max+=pad;
 
- const getY=(val)=>h-((val-min)/(max-min))*(h-18)-9;
+ const getY=(val)=>h-((val-min)/(max-min))*(h-24)-12;
 
- // Horizontal grid lines
+ // Subtle background price grid
  ctx.save();
- ctx.strokeStyle='rgba(148,163,184,0.08)';
+ ctx.strokeStyle='rgba(148,163,184,0.07)';
  ctx.lineWidth=1;
  for(let step=1; step<=3; step++){
   const yGrid=h*(step/4);
@@ -1036,45 +1038,45 @@ function drawLiveChart(sym){
  }
  ctx.restore();
 
- // PDH Level Line
+ // Draw PDH Reference Line only if inside candle zoom range
  if(d.pdh&&d.pdh>=min&&d.pdh<=max){
   const yPDH=getY(d.pdh);
   ctx.save();
-  ctx.setLineDash([3,3]);
-  ctx.strokeStyle='rgba(0,217,255,0.6)';
-  ctx.lineWidth=1;
+  ctx.setLineDash([4,3]);
+  ctx.strokeStyle='rgba(0,217,255,0.7)';
+  ctx.lineWidth=1.2;
   ctx.beginPath();
   ctx.moveTo(0,yPDH);
-  ctx.lineTo(w-44,yPDH);
+  ctx.lineTo(w-54,yPDH);
   ctx.stroke();
-  ctx.fillStyle='rgba(0,217,255,0.85)';
-  ctx.font='bold 8px monospace';
-  ctx.fillText('PDH',4,yPDH-2);
+  ctx.fillStyle='rgba(0,217,255,0.9)';
+  ctx.font='bold 9px monospace';
+  ctx.fillText('PDH',4,yPDH-3);
   ctx.restore();
  }
 
- // PDL Level Line
+ // Draw PDL Reference Line only if inside candle zoom range
  if(d.pdl&&d.pdl>=min&&d.pdl<=max){
   const yPDL=getY(d.pdl);
   ctx.save();
-  ctx.setLineDash([3,3]);
-  ctx.strokeStyle='rgba(255,189,60,0.6)';
-  ctx.lineWidth=1;
+  ctx.setLineDash([4,3]);
+  ctx.strokeStyle='rgba(255,189,60,0.7)';
+  ctx.lineWidth=1.2;
   ctx.beginPath();
   ctx.moveTo(0,yPDL);
-  ctx.lineTo(w-44,yPDL);
+  ctx.lineTo(w-54,yPDL);
   ctx.stroke();
-  ctx.fillStyle='rgba(255,189,60,0.85)';
-  ctx.font='bold 8px monospace';
-  ctx.fillText('PDL',4,yPDL+8);
+  ctx.fillStyle='rgba(255,189,60,0.9)';
+  ctx.font='bold 9px monospace';
+  ctx.fillText('PDL',4,yPDL+10);
   ctx.restore();
  }
 
- // Draw Candlesticks
+ // Render Bold Chunky Candlesticks
  const count=candles.length;
- const chartWidth=w-48;
+ const chartWidth=w-56;
  const slotWidth=chartWidth/count;
- const candleWidth=Math.max(2.5,Math.min(8,slotWidth*0.72));
+ const candleWidth=Math.max(4.5,Math.min(14,slotWidth*0.72));
 
  for(let i=0;i<count;i++){
   const c=candles[i];
@@ -1088,61 +1090,64 @@ function drawLiveChart(sym){
   const isBullish=c.close>=c.open;
   const color=isBullish?'#00e59a':'#ff426b';
 
-  // Draw Wick
+  // 1. Thick Central Wick
   ctx.save();
   ctx.strokeStyle=color;
-  ctx.lineWidth=1.2;
+  ctx.lineWidth=1.5;
   ctx.beginPath();
   ctx.moveTo(xCenter,yHigh);
   ctx.lineTo(xCenter,yLow);
   ctx.stroke();
   ctx.restore();
 
-  // Draw Candle Body
+  // 2. Chunky Candle Body with minimum height of 3px
   const bodyTop=Math.min(yOpen,yClose);
-  const bodyHeight=Math.max(2,Math.abs(yClose-yOpen));
+  const bodyHeight=Math.max(3.5,Math.abs(yClose-yOpen));
 
   ctx.save();
   ctx.fillStyle=color;
-  ctx.shadowColor=color;
-  ctx.shadowBlur=(i===count-1)?6:0; // Glowing pulse for latest candle
+  if(i===count-1){
+   ctx.shadowColor=color;
+   ctx.shadowBlur=8; // Dynamic glow for live candle
+  }
   ctx.fillRect(xCenter-candleWidth/2,bodyTop,candleWidth,bodyHeight);
   ctx.restore();
  }
 
- // Live Horizontal Price Tracker & Badge
+ // Live Horizontal Price Tracker & Pill Tag
  if(d.price&&d.price>=min&&d.price<=max){
   const yP=getY(d.price);
-  const lastBullish=candles[count-1].close>=candles[count-1].open;
-  const pColor=lastBullish?'#00e59a':'#ff426b';
+  const lastC=candles[count-1];
+  const isBull=lastC.close>=lastC.open;
+  const pColor=isBull?'#00e59a':'#ff426b';
 
   ctx.save();
-  ctx.setLineDash([2,2]);
+  ctx.setLineDash([3,2]);
   ctx.strokeStyle=pColor;
-  ctx.lineWidth=1;
+  ctx.lineWidth=1.2;
   ctx.beginPath();
   ctx.moveTo(0,yP);
-  ctx.lineTo(w-46,yP);
+  ctx.lineTo(w-55,yP);
   ctx.stroke();
 
-  // Right-side Price Badge
+  // Price Box on the right axis
   ctx.fillStyle=pColor;
-  ctx.fillRect(w-45,yP-7,44,14);
+  ctx.fillRect(w-54,yP-8,52,16);
   ctx.fillStyle='#070b12';
-  ctx.font='bold 8.5px monospace';
-  ctx.fillText(fmt(d.price,0),w-42,yP+3.5);
+  ctx.font='bold 9px monospace';
+  ctx.fillText(fmt(d.price,d.dec===1?1:2),w-50,yP+3.5);
   ctx.restore();
  }
 }
 
-/* =======================================================
-   FETCH CANDLE HISTORY (INITIAL 1M CANDLES FOR ACCURACY)
-   ======================================================= */
+/* ===============================================================
+   FETCH 5M CANDLE HISTORY (LAST 22 CANDLES FOR CLEAN VIEW)
+   =============================================================== */
 async function fetchCandleHistory(sym){
  try{
   const nowSec=Math.floor(Date.now()/1000);
-  const startSec=nowSec-(60*32);
-  const res=await fetch(`https://api.india.delta.exchange/v2/history/candles?resolution=1m&symbol=${sym}&start=${startSec}&end=${nowSec}`);
+  const startSec=nowSec-(300*24); // 24 candles of 5 minutes each
+  const res=await fetch(`https://api.india.delta.exchange/v2/history/candles?resolution=5m&symbol=${sym}&start=${startSec}&end=${nowSec}`);
   const data=await res.json();
   if(data.result&&data.result.length>0){
    state[sym].candles=data.result.map(c=>({
@@ -1444,7 +1449,7 @@ function connectWS(){
  const ws=new WebSocket("wss://socket.india.delta.exchange");
 
  ws.onopen=()=>{
-  addLog("ALL","Delta live ticks connected. Real-time candlestick feed ready.");
+  addLog("ALL","Delta live ticks connected. 5M Candlestick feed active.");
   ws.send(JSON.stringify({
    type:"subscribe",
    payload:{
@@ -1476,15 +1481,15 @@ function connectWS(){
     d.price=newPrice;
     pEl.innerText='$'+fmt(newPrice,d.dec);
 
-    // DYNAMIC CANDLESTICK UPDATE
+    // DYNAMIC 5-MINUTE CANDLESTICK UPDATE
     if(!d.candles) d.candles=[];
     const now=Date.now();
     if(d.candles.length===0){
      d.candles.push({open:newPrice,high:newPrice,low:newPrice,close:newPrice,time:now});
     }else{
      const lastC=d.candles[d.candles.length-1];
-     if(lastC.time&&now-lastC.time>60000){ // 1-minute candle roll
-      if(d.candles.length>30) d.candles.shift();
+     if(lastC.time&&now-lastC.time>300000){ // 5-minute candle roll (300,000 ms)
+      if(d.candles.length>22) d.candles.shift();
       d.candles.push({open:newPrice,high:newPrice,low:newPrice,close:newPrice,time:now});
      }else{
       lastC.close=newPrice;
