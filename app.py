@@ -58,7 +58,7 @@ terminal_html = r"""
  --shadow:0 14px 38px rgba(0,0,0,.34);
  --nav:#09111b;
  --console:#03070c;
- --chart-bg:rgba(3,7,12,0.45);
+ --chart-bg:rgba(4,8,15,0.75);
 }
 
 :root[data-theme="light"]{
@@ -79,7 +79,7 @@ terminal_html = r"""
  --shadow:0 12px 30px rgba(15,23,42,.08);
  --nav:#ffffff;
  --console:#0b1220;
- --chart-bg:rgba(241,245,249,0.7);
+ --chart-bg:rgba(241,245,249,0.85);
 }
 
 *{
@@ -91,8 +91,8 @@ terminal_html = r"""
 html{scroll-behavior:smooth}
 body{
  background:
-   radial-gradient(circle at 15% 0%,rgba(0,217,255,.055),transparent 28%),
-   radial-gradient(circle at 90% 15%,rgba(75,156,255,.045),transparent 25%),
+   radial-gradient(circle at 15% 0%,rgba(0,217,255,.07),transparent 35%),
+   radial-gradient(circle at 90% 15%,rgba(75,156,255,.06),transparent 30%),
    var(--bg);
  color:var(--text);
  min-height:100vh;
@@ -207,6 +207,7 @@ button{font:inherit}
  font-size:10px;
  font-weight:800;
  cursor:pointer;
+ transition:all .2s ease;
 }
 .top-nav button.active{
  color:#fff;
@@ -229,13 +230,18 @@ button{font:inherit}
  border-radius:20px;
  padding:16px;
  box-shadow:var(--shadow);
+ transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.market-card:hover{
+ border-color:var(--border2);
+ box-shadow:0 18px 42px rgba(0,0,0,.45);
 }
 .market-card:before{
  content:"";
  position:absolute;
  left:0;right:0;top:0;height:2px;
  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
- opacity:.75;
+ opacity:.85;
 }
 .market-head{
  display:flex;
@@ -258,21 +264,22 @@ button{font:inherit}
 .asset-name{font-weight:900;font-size:13px}
 .spot{color:var(--muted);font:9px monospace;margin-top:3px}
 .price{text-align:right}
-.live-price{font:900 23px monospace;white-space:nowrap}
-.price-up{color:var(--green)!important}
-.price-down{color:var(--red)!important}
+.live-price{font:900 24px monospace;white-space:nowrap;transition:color .15s ease, text-shadow .15s ease}
+.price-up{color:var(--green)!important;text-shadow:0 0 10px rgba(0,229,154,0.45)}
+.price-down{color:var(--red)!important;text-shadow:0 0 10px rgba(255,66,107,0.45)}
 .price-change{font:800 10px monospace;color:var(--red);margin-top:3px}
 
-/* LIVE CHART CANVAS */
+/* DYNAMIC CANDLESTICK CHART CONTAINER */
 .chart-container{
- height:62px;
+ height:150px;
  width:100%;
- margin:10px 0 10px;
- border-radius:10px;
+ margin:12px 0 12px;
+ border-radius:12px;
  background:var(--chart-bg);
  border:1px solid var(--border);
  position:relative;
  overflow:hidden;
+ box-shadow:inset 0 0 18px rgba(0,0,0,0.28);
 }
 .chart-container canvas{
  width:100%;
@@ -291,6 +298,7 @@ button{font:inherit}
  background:var(--tile);
  border:1px solid var(--border);
  border-radius:10px;
+ transition:border-color .2s ease;
 }
 .metric-label{
  color:var(--muted);
@@ -354,8 +362,9 @@ button{font:inherit}
  font-size:9px;
  font-weight:900;
  cursor:pointer;
+ transition:all .2s ease;
 }
-.tab.active{background:var(--blue);color:#fff}
+.tab.active{background:var(--blue);color:#fff;box-shadow:0 3px 10px rgba(37,99,235,0.3)}
 
 /* SIGNAL CARDS */
 .signal-grid{
@@ -402,12 +411,14 @@ button{font:inherit}
  border:1px solid var(--border);
  color:var(--muted);
  font-size:8px;
+ transition:all .2s ease;
 }
 .step span{display:block;font-size:7px;margin-bottom:2px}
 .step.active-step{
  color:var(--text);
  border-color:var(--green);
  background:color-mix(in srgb,var(--green) 8%,transparent);
+ font-weight:800;
 }
 .params{
  display:grid;
@@ -501,7 +512,7 @@ button{font:inherit}
 .log-time{color:#738197}
 .log-tf{color:var(--cyan);font-weight:900}
 
-/* DESKTOP NAVIGATION HINT */
+/* DESKTOP SIDE PANEL */
 .desktop-layout{
  display:grid;
  grid-template-columns:minmax(0,1fr) 300px;
@@ -530,9 +541,7 @@ button{font:inherit}
 .side-row span:last-child{color:var(--cyan);font-family:monospace}
 
 /* MOBILE BOTTOM NAV */
-.bottom-nav{
- display:none;
-}
+.bottom-nav{display:none}
 
 /* TABLET */
 @media(max-width:1000px){
@@ -553,6 +562,7 @@ button{font:inherit}
  .market-grid{grid-template-columns:1fr;gap:9px}
  .market-card{padding:13px;border-radius:17px}
  .live-price{font-size:20px}
+ .chart-container{height:135px}
  .metrics-grid{grid-template-columns:repeat(4,1fr)}
  .metric{padding:7px 5px}
  .metric-label{font-size:7px}
@@ -606,6 +616,7 @@ button{font:inherit}
  .metric-label{font-size:6.5px}
  .metric-value{font-size:8px}
  .live-price{font-size:18px}
+ .chart-container{height:120px}
  .section-title{font-size:9px}
 }
 </style>
@@ -654,7 +665,7 @@ button{font:inherit}
     </div>
    </div>
    
-   <!-- REAL-TIME MINI CHART -->
+   <!-- REAL-TIME CANDLESTICK CHART -->
    <div class="chart-container">
     <canvas id="btc-chart"></canvas>
    </div>
@@ -688,7 +699,7 @@ button{font:inherit}
     </div>
    </div>
 
-   <!-- REAL-TIME MINI CHART -->
+   <!-- REAL-TIME CANDLESTICK CHART -->
    <div class="chart-container">
     <canvas id="eth-chart"></canvas>
    </div>
@@ -921,7 +932,7 @@ updateClock();
 const state={
  BTCUSD:{
   price:0,spot:0,vol:0,cdh:0,cdl:0,pdh:0,pdl:0,dec:1,
-  history:[],
+  candles:[],
   '15m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
   '5m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
   sfp_15m:{signal:'WAIT',badge:'NO SWEEP',entry:'--',sl:'--',tp1:'--',tp2:'--',step:1,rationale:'',lastSig:''},
@@ -929,7 +940,7 @@ const state={
  },
  ETHUSD:{
   price:0,spot:0,vol:0,cdh:0,cdl:0,pdh:0,pdl:0,dec:2,
-  history:[],
+  candles:[],
   '15m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
   '5m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
   sfp_15m:{signal:'WAIT',badge:'NO SWEEP',entry:'--',sl:'--',tp1:'--',tp2:'--',step:1,rationale:'',lastSig:''},
@@ -972,9 +983,9 @@ function clearLogs(){
  document.getElementById('console-logs').innerHTML='<div class="log-line"><span class="log-time">[CLEARED]</span> Logs reset.</div>';
 }
 
-/* =====================================
-   LIVE MINI CHART ENGINE (CANVAS)
-   ===================================== */
+/* =======================================================
+   REAL-TIME CANDLESTICK CHART RENDERER (OHLC + PDH / PDL)
+   ======================================================= */
 function drawLiveChart(sym){
  const canvas=document.getElementById(sym==='BTCUSD'?'btc-chart':'eth-chart');
  if(!canvas) return;
@@ -991,11 +1002,18 @@ function drawLiveChart(sym){
  const h=canvas.height;
  ctx.clearRect(0,0,w,h);
 
- const hist=d.history;
- if(!hist||hist.length<2) return;
+ const candles=d.candles;
+ if(!candles||candles.length===0) return;
 
- let min=Math.min(...hist);
- let max=Math.max(...hist);
+ // Calculate high/low range
+ let min=Infinity;
+ let max=-Infinity;
+ for(const c of candles){
+  if(c.low<min) min=c.low;
+  if(c.high>max) max=c.high;
+ }
+
+ // Include PDH and PDL levels in view range if close
  if(d.pdh&&d.pdh>max) max=d.pdh;
  if(d.pdl&&d.pdl<min) min=d.pdl;
 
@@ -1003,87 +1021,140 @@ function drawLiveChart(sym){
  min-=pad;
  max+=pad;
 
- const getY=(val)=>h-((val-min)/(max-min))*(h-12)-6;
- const getX=(idx)=>(idx/(hist.length-1))*(w-16)+8;
+ const getY=(val)=>h-((val-min)/(max-min))*(h-18)-9;
 
- // Draw PDH Reference Line
+ // Horizontal grid lines
+ ctx.save();
+ ctx.strokeStyle='rgba(148,163,184,0.08)';
+ ctx.lineWidth=1;
+ for(let step=1; step<=3; step++){
+  const yGrid=h*(step/4);
+  ctx.beginPath();
+  ctx.moveTo(0,yGrid);
+  ctx.lineTo(w,yGrid);
+  ctx.stroke();
+ }
+ ctx.restore();
+
+ // PDH Level Line
  if(d.pdh&&d.pdh>=min&&d.pdh<=max){
   const yPDH=getY(d.pdh);
   ctx.save();
   ctx.setLineDash([3,3]);
-  ctx.strokeStyle='rgba(0,217,255,0.45)';
+  ctx.strokeStyle='rgba(0,217,255,0.6)';
   ctx.lineWidth=1;
   ctx.beginPath();
   ctx.moveTo(0,yPDH);
-  ctx.lineTo(w,yPDH);
+  ctx.lineTo(w-44,yPDH);
   ctx.stroke();
-  ctx.fillStyle='rgba(0,217,255,0.7)';
-  ctx.font='7.5px monospace';
+  ctx.fillStyle='rgba(0,217,255,0.85)';
+  ctx.font='bold 8px monospace';
   ctx.fillText('PDH',4,yPDH-2);
   ctx.restore();
  }
 
- // Draw PDL Reference Line
+ // PDL Level Line
  if(d.pdl&&d.pdl>=min&&d.pdl<=max){
   const yPDL=getY(d.pdl);
   ctx.save();
   ctx.setLineDash([3,3]);
-  ctx.strokeStyle='rgba(255,189,60,0.45)';
+  ctx.strokeStyle='rgba(255,189,60,0.6)';
   ctx.lineWidth=1;
   ctx.beginPath();
   ctx.moveTo(0,yPDL);
-  ctx.lineTo(w,yPDL);
+  ctx.lineTo(w-44,yPDL);
   ctx.stroke();
-  ctx.fillStyle='rgba(255,189,60,0.7)';
-  ctx.font='7.5px monospace';
+  ctx.fillStyle='rgba(255,189,60,0.85)';
+  ctx.font='bold 8px monospace';
   ctx.fillText('PDL',4,yPDL+8);
   ctx.restore();
  }
 
- // Price Curve Path
- ctx.beginPath();
- for(let i=0;i<hist.length;i++){
-  const x=getX(i);
-  const y=getY(hist[i]);
-  if(i===0) ctx.moveTo(x,y);
-  else ctx.lineTo(x,y);
+ // Draw Candlesticks
+ const count=candles.length;
+ const chartWidth=w-48;
+ const slotWidth=chartWidth/count;
+ const candleWidth=Math.max(2.5,Math.min(8,slotWidth*0.72));
+
+ for(let i=0;i<count;i++){
+  const c=candles[i];
+  const xCenter=i*slotWidth+slotWidth/2+6;
+
+  const yOpen=getY(c.open);
+  const yClose=getY(c.close);
+  const yHigh=getY(c.high);
+  const yLow=getY(c.low);
+
+  const isBullish=c.close>=c.open;
+  const color=isBullish?'#00e59a':'#ff426b';
+
+  // Draw Wick
+  ctx.save();
+  ctx.strokeStyle=color;
+  ctx.lineWidth=1.2;
+  ctx.beginPath();
+  ctx.moveTo(xCenter,yHigh);
+  ctx.lineTo(xCenter,yLow);
+  ctx.stroke();
+  ctx.restore();
+
+  // Draw Candle Body
+  const bodyTop=Math.min(yOpen,yClose);
+  const bodyHeight=Math.max(2,Math.abs(yClose-yOpen));
+
+  ctx.save();
+  ctx.fillStyle=color;
+  ctx.shadowColor=color;
+  ctx.shadowBlur=(i===count-1)?6:0; // Glowing pulse for latest candle
+  ctx.fillRect(xCenter-candleWidth/2,bodyTop,candleWidth,bodyHeight);
+  ctx.restore();
  }
 
- const isUp=hist[hist.length-1]>=hist[0];
- const strokeColor=isUp?'#00e59a':'#ff426b';
+ // Live Horizontal Price Tracker & Badge
+ if(d.price&&d.price>=min&&d.price<=max){
+  const yP=getY(d.price);
+  const lastBullish=candles[count-1].close>=candles[count-1].open;
+  const pColor=lastBullish?'#00e59a':'#ff426b';
 
- // Area Gradient Fill
- ctx.save();
- const grad=ctx.createLinearGradient(0,0,0,h);
- grad.addColorStop(0,isUp?'rgba(0,229,154,0.22)':'rgba(255,66,107,0.22)');
- grad.addColorStop(1,'transparent');
- ctx.lineTo(getX(hist.length-1),h);
- ctx.lineTo(getX(0),h);
- ctx.closePath();
- ctx.fillStyle=grad;
- ctx.fill();
- ctx.restore();
+  ctx.save();
+  ctx.setLineDash([2,2]);
+  ctx.strokeStyle=pColor;
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(0,yP);
+  ctx.lineTo(w-46,yP);
+  ctx.stroke();
 
- // Line Stroke
- ctx.save();
- ctx.strokeStyle=strokeColor;
- ctx.lineWidth=1.8;
- ctx.shadowColor=strokeColor;
- ctx.shadowBlur=4;
- ctx.stroke();
- ctx.restore();
+  // Right-side Price Badge
+  ctx.fillStyle=pColor;
+  ctx.fillRect(w-45,yP-7,44,14);
+  ctx.fillStyle='#070b12';
+  ctx.font='bold 8.5px monospace';
+  ctx.fillText(fmt(d.price,0),w-42,yP+3.5);
+  ctx.restore();
+ }
+}
 
- // Head Glow Dot
- const lastX=getX(hist.length-1);
- const lastY=getY(hist[hist.length-1]);
- ctx.save();
- ctx.beginPath();
- ctx.arc(lastX,lastY,3,0,Math.PI*2);
- ctx.fillStyle=strokeColor;
- ctx.shadowColor=strokeColor;
- ctx.shadowBlur=8;
- ctx.fill();
- ctx.restore();
+/* =======================================================
+   FETCH CANDLE HISTORY (INITIAL 1M CANDLES FOR ACCURACY)
+   ======================================================= */
+async function fetchCandleHistory(sym){
+ try{
+  const nowSec=Math.floor(Date.now()/1000);
+  const startSec=nowSec-(60*32);
+  const res=await fetch(`https://api.india.delta.exchange/v2/history/candles?resolution=1m&symbol=${sym}&start=${startSec}&end=${nowSec}`);
+  const data=await res.json();
+  if(data.result&&data.result.length>0){
+   state[sym].candles=data.result.map(c=>({
+    open:parseFloat(c.open),
+    high:parseFloat(c.high),
+    low:parseFloat(c.low),
+    close:parseFloat(c.close),
+    time:c.time||c.timestamp||0
+   })).sort((a,b)=>a.time-b.time);
+   drawLiveChart(sym);
+  }
+ }catch(e){}
 }
 
 /* =========================
@@ -1107,9 +1178,8 @@ async function fetchDailyStats(){
     state[sym].cdh=parseFloat(today.high);
     state[sym].cdl=parseFloat(today.low);
 
-    if(!state[sym].history||state[sym].history.length===0){
-     const base=parseFloat(today.close||yesterday.close);
-     state[sym].history=[state[sym].cdl,base,state[sym].cdh,base];
+    if(!state[sym].candles||state[sym].candles.length===0){
+     fetchCandleHistory(sym);
     }
 
     updateMetricsUI(sym);
@@ -1374,7 +1444,7 @@ function connectWS(){
  const ws=new WebSocket("wss://socket.india.delta.exchange");
 
  ws.onopen=()=>{
-  addLog("ALL","Delta live ticks connected. Real-time stream active.");
+  addLog("ALL","Delta live ticks connected. Real-time candlestick feed ready.");
   ws.send(JSON.stringify({
    type:"subscribe",
    payload:{
@@ -1406,9 +1476,23 @@ function connectWS(){
     d.price=newPrice;
     pEl.innerText='$'+fmt(newPrice,d.dec);
 
-    if(!d.history) d.history=[];
-    d.history.push(newPrice);
-    if(d.history.length>45) d.history.shift();
+    // DYNAMIC CANDLESTICK UPDATE
+    if(!d.candles) d.candles=[];
+    const now=Date.now();
+    if(d.candles.length===0){
+     d.candles.push({open:newPrice,high:newPrice,low:newPrice,close:newPrice,time:now});
+    }else{
+     const lastC=d.candles[d.candles.length-1];
+     if(lastC.time&&now-lastC.time>60000){ // 1-minute candle roll
+      if(d.candles.length>30) d.candles.shift();
+      d.candles.push({open:newPrice,high:newPrice,low:newPrice,close:newPrice,time:now});
+     }else{
+      lastC.close=newPrice;
+      if(newPrice>lastC.high) lastC.high=newPrice;
+      if(newPrice<lastC.low) lastC.low=newPrice;
+     }
+    }
+
     drawLiveChart(sym);
 
     if(!d.cdh||newPrice>d.cdh)d.cdh=newPrice;
@@ -1439,7 +1523,6 @@ function connectWS(){
  };
 }
 
-// Keep connection hot with ping
 setInterval(()=>{
   fetchDailyStats();
 }, 60000);
@@ -1451,4 +1534,4 @@ connectWS();
 </html>
 """
 
-components.html(terminal_html, height=1600, scrolling=True)
+components.html(terminal_html, height=1700, scrolling=True)
