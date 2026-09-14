@@ -1,0 +1,16 @@
+name: Keep Streamlit Alive
+
+on:
+  schedule:
+    # Har 2 ghante me run hoga
+    - cron: "0 */2 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Streamlit App
+        run: |
+          curl -s "https://deltaman.streamlit.app/?embed=true" > /dev/null
+          echo "Streamlit app pinged successfully to prevent sleep."
