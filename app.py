@@ -619,6 +619,78 @@ button{font:inherit}
  .chart-container{height:150px}
  .section-title{font-size:9px}
 }
+
+/* =========================================================
+   FINAL MOBILE UI POLISH — VISUAL ONLY
+   ========================================================= */
+.header{
+ min-height:64px;
+ padding:11px 15px;
+}
+.brand-title{letter-spacing:.15px}
+.live-price{
+ font-size:26px;
+ letter-spacing:-.8px;
+}
+.chart-container{
+ height:190px;
+ margin:12px 0 13px;
+}
+
+/* Stronger active setup stage — no state/logic changes */
+.step.active-step{
+ box-shadow:0 0 0 1px color-mix(in srgb,var(--green) 28%,transparent),
+            0 0 16px color-mix(in srgb,var(--green) 18%,transparent),
+            inset 0 0 14px color-mix(in srgb,var(--green) 7%,transparent);
+ transform:translateY(-1px);
+}
+
+/* SMC entry / SL / target hierarchy */
+.trade-param-row .trade-param-box:nth-child(2){
+ border-color:color-mix(in srgb,var(--cyan) 35%,var(--border));
+ box-shadow:inset 0 0 12px color-mix(in srgb,var(--cyan) 5%,transparent);
+}
+.trade-param-row .trade-param-box:nth-child(3){
+ border-color:color-mix(in srgb,var(--red) 38%,var(--border));
+}
+.trade-param-row .trade-param-box:nth-child(4){
+ border-color:color-mix(in srgb,var(--green) 42%,var(--border));
+ background:color-mix(in srgb,var(--green) 5%,var(--tile));
+ box-shadow:inset 0 0 14px color-mix(in srgb,var(--green) 6%,transparent);
+}
+.trade-param-row .trade-param-box:nth-child(4) .param-lbl,
+.trade-param-row .trade-param-box:nth-child(4) .param-val{
+ color:var(--green);
+}
+
+/* Theme-safe audit log text */
+.log-time{color:var(--muted)}
+
+@media(max-width:700px){
+ .header{min-height:58px;padding:10px 11px}
+ .brand-title{font-size:12px}
+ .live-price{font-size:22px}
+ .chart-container{height:178px;margin:11px 0 12px}
+ .section{margin-bottom:10px}
+ .smc-card{padding:11px}
+ .trade-param-row{gap:5px}
+ .trade-param-box{padding:8px 4px}
+ .param-lbl{font-size:7px}
+ .param-val{font-size:9px}
+ .console-box{height:120px;font-size:9.5px;line-height:1.55}
+ .log-line{margin-bottom:4px}
+}
+
+@media(max-width:380px){
+ .header{min-height:56px}
+ .live-price{font-size:20px}
+ .chart-container{height:164px}
+ .trade-param-box{padding:7px 3px}
+ .param-lbl{font-size:6.5px}
+ .param-val{font-size:8px}
+ .console-box{font-size:9px}
+}
+
 </style>
 </head>
 
