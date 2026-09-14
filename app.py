@@ -485,12 +485,12 @@ button{font:inherit}
 .ob-type{font-size:10px;font-weight:900}
 .ob-range{font:9px monospace;color:var(--muted);margin-top:3px}
 .ob-status{font-size:7px;padding:4px 6px;border-radius:6px}
-.trade-param-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px}
+.trade-param-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:6px}
 .trade-param-box{
  text-align:center;padding:8px 5px;border-radius:9px;
  background:var(--tile);border:1px solid var(--border);
 }
-.param-lbl{font-size:7px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-bottom:3px}
+.param-lbl{font-size:7px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-bottom:3px;white-space:nowrap}
 .param-val{font:800 9px monospace}
 
 /* LOGS */
@@ -619,83 +619,6 @@ button{font:inherit}
  .chart-container{height:150px}
  .section-title{font-size:9px}
 }
-
-/* =========================================================
-   UI PATCH — THEME CONTRAST + BTCUSD/ETHUSD CHART SELECTOR
-   Visual behavior only. No data/strategy logic is changed.
-   ========================================================= */
-html[data-theme="dark"] body{color:#f4f7fb;background-color:#070b12}
-html[data-theme="light"] body{color:#0f172a;background-color:#eef3f8}
-
-html[data-theme="dark"] .brand-title,
-html[data-theme="dark"] .asset-name,
-html[data-theme="dark"] .signal-asset,
-html[data-theme="dark"] .section-title,
-html[data-theme="dark"] .side-title,
-html[data-theme="dark"] .smc-top,
-html[data-theme="dark"] .ob-type{color:#f4f7fb}
-html[data-theme="light"] .brand-title,
-html[data-theme="light"] .asset-name,
-html[data-theme="light"] .signal-asset,
-html[data-theme="light"] .section-title,
-html[data-theme="light"] .side-title,
-html[data-theme="light"] .smc-top,
-html[data-theme="light"] .ob-type{color:#0f172a}
-
-html[data-theme="dark"] .spot,
-html[data-theme="dark"] .brand-sub,
-html[data-theme="dark"] .metric-label,
-html[data-theme="dark"] .param-lbl,
-html[data-theme="dark"] .explain,
-html[data-theme="dark"] .ob-range{color:#8190a6}
-html[data-theme="light"] .spot,
-html[data-theme="light"] .brand-sub,
-html[data-theme="light"] .metric-label,
-html[data-theme="light"] .param-lbl,
-html[data-theme="light"] .explain,
-html[data-theme="light"] .ob-range{color:#64748b}
-
-html[data-theme="dark"] .theme-btn,
-html[data-theme="dark"] .top-nav,
-html[data-theme="dark"] .market-card,
-html[data-theme="dark"] .section,
-html[data-theme="dark"] .side-panel,
-html[data-theme="dark"] .header{color:#f4f7fb}
-html[data-theme="light"] .theme-btn,
-html[data-theme="light"] .top-nav,
-html[data-theme="light"] .market-card,
-html[data-theme="light"] .section,
-html[data-theme="light"] .side-panel,
-html[data-theme="light"] .header{color:#0f172a}
-
-/* Make the two symbol cards unmistakably selectable. */
-.market-card[data-symbol]{cursor:pointer}
-.market-card[data-symbol].chart-selected{
- border-color:var(--cyan);
- box-shadow:0 0 0 1px color-mix(in srgb,var(--cyan) 28%,transparent),var(--shadow),0 0 26px color-mix(in srgb,var(--cyan) 10%,transparent);
-}
-.market-card[data-symbol].chart-selected:before{opacity:1}
-.market-card .symbol-select-hint{display:none}
-
-@media(max-width:700px){
- .market-card[data-symbol]{cursor:pointer}
- .market-card:not(.chart-selected) .chart-container,
- .market-card:not(.chart-selected) .metrics-grid{display:none}
- .market-card:not(.chart-selected){padding-bottom:11px}
- .market-card.chart-selected .chart-container{display:block}
- .market-card.chart-selected .metrics-grid{display:grid}
- .market-card .market-head{min-height:45px}
- .market-card .asset-name:after{
-  content:"  • TAP FOR CHART";
-  color:var(--cyan);
-  font-size:7px;
-  font-weight:800;
-  letter-spacing:.3px;
- }
- .market-card.chart-selected .asset-name:after{content:"  • CHART ACTIVE"}
- .market-grid{margin-bottom:9px}
-}
-
 </style>
 </head>
 
@@ -727,7 +650,7 @@ html[data-theme="light"] .header{color:#0f172a}
 <section id="markets">
  <div class="market-grid">
 
-  <div class="market-card chart-selected" data-symbol="BTCUSD" onclick="selectChartSymbol('BTCUSD')">
+  <div class="market-card">
    <div class="market-head">
     <div class="asset">
      <div class="asset-icon">🟠</div>
@@ -761,7 +684,7 @@ html[data-theme="light"] .header{color:#0f172a}
    </div>
   </div>
 
-  <div class="market-card" data-symbol="ETHUSD" onclick="selectChartSymbol('ETHUSD')">
+  <div class="market-card">
    <div class="market-head">
     <div class="asset">
      <div class="asset-icon">🔷</div>
@@ -891,7 +814,7 @@ html[data-theme="light"] .header{color:#0f172a}
    <div class="trade-param-row">
     <div class="trade-param-box"><div class="param-lbl">Action</div><div class="param-val" id="btc-action">MONITOR</div></div>
     <div class="trade-param-box"><div class="param-lbl">Entry / OB</div><div class="param-val" id="btc-entry">--</div></div>
-    <div class="trade-param-box"><div class="param-lbl">Stop Loss</div><div class="param-val red" id="btc-sl">--</div></div>
+    <div class="trade-param-box"><div class="param-lbl">Stop Loss</div><div class="param-val red" id="btc-sl">--</div></div>     <div class="trade-param-box"><div class="param-lbl">Exit / Target</div><div class="param-val cyan" id="btc-exit">--</div></div>
    </div>
    <div class="explain" id="btc-narrative">Scanning OB footprint and structure...</div>
   </div>
@@ -911,7 +834,7 @@ html[data-theme="light"] .header{color:#0f172a}
    <div class="trade-param-row">
     <div class="trade-param-box"><div class="param-lbl">Action</div><div class="param-val" id="eth-action">MONITOR</div></div>
     <div class="trade-param-box"><div class="param-lbl">Entry / OB</div><div class="param-val" id="eth-entry">--</div></div>
-    <div class="trade-param-box"><div class="param-lbl">Stop Loss</div><div class="param-val red" id="eth-sl">--</div></div>
+    <div class="trade-param-box"><div class="param-lbl">Stop Loss</div><div class="param-val red" id="eth-sl">--</div></div>     <div class="trade-param-box"><div class="param-lbl">Exit / Target</div><div class="param-val cyan" id="eth-exit">--</div></div>
    </div>
    <div class="explain" id="eth-narrative">Scanning OB footprint and structure...</div>
   </div>
@@ -967,23 +890,6 @@ function toggleTheme(){
 }
 applyTheme(currentTheme);
 
-
-let selectedChartSymbol='BTCUSD';
-function selectChartSymbol(sym){
- selectedChartSymbol=sym;
- document.querySelectorAll('.market-card[data-symbol]').forEach(card=>{
-  card.classList.toggle('chart-selected',card.dataset.symbol===sym);
- });
- // On small screens, bring the selected symbol's existing chart into view.
- if(window.innerWidth<=700){
-  document.querySelector('.market-card[data-symbol="'+sym+'"]')?.scrollIntoView({behavior:'smooth',block:'center'});
- }
- // Redraw the already-existing chart after the layout changes.
- requestAnimationFrame(()=>{
-  drawLiveChart(sym);
- });
-}
-
 function scrollToSection(id,btn){
  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
  document.querySelectorAll('.top-nav button,.bottom-nav button').forEach(b=>b.classList.remove('active'));
@@ -1016,12 +922,6 @@ function switchSFPTF(tf){
  filterLogs();
 }
 
-
-window.addEventListener('resize',()=>{
- const active=document.querySelector('.market-card[data-symbol="'+selectedChartSymbol+'"]');
- if(active) requestAnimationFrame(()=>drawLiveChart(selectedChartSymbol));
-});
-
 function updateClock(){
  const now=new Date();
  document.getElementById('utc-clock').innerText=now.toUTCString().split(' ')[4]+' UTC';
@@ -1033,16 +933,16 @@ const state={
  BTCUSD:{
   price:0,spot:0,vol:0,cdh:0,cdl:0,pdh:0,pdl:0,dec:1,
   candles:[],
-  '15m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
-  '5m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
+  '15m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',exit:'--',narrative:''},
+  '5m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',exit:'--',narrative:''},
   sfp_15m:{signal:'WAIT',badge:'NO SWEEP',entry:'--',sl:'--',tp1:'--',tp2:'--',step:1,rationale:'',lastSig:''},
   sfp_5m:{signal:'WAIT',badge:'NO SWEEP',entry:'--',sl:'--',tp1:'--',tp2:'--',step:1,rationale:'',lastSig:''}
  },
  ETHUSD:{
   price:0,spot:0,vol:0,cdh:0,cdl:0,pdh:0,pdl:0,dec:2,
   candles:[],
-  '15m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
-  '5m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',narrative:''},
+  '15m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',exit:'--',narrative:''},
+  '5m':{action:'MONITOR',state:'SCANNING',obType:'--',obRange:'--',obStatus:'UNTESTED',entry:'--',sl:'--',exit:'--',narrative:''},
   sfp_15m:{signal:'WAIT',badge:'NO SWEEP',entry:'--',sl:'--',tp1:'--',tp2:'--',step:1,rationale:'',lastSig:''},
   sfp_5m:{signal:'WAIT',badge:'NO SWEEP',entry:'--',sl:'--',tp1:'--',tp2:'--',step:1,rationale:'',lastSig:''}
  }
@@ -1320,6 +1220,7 @@ function evaluateSMC(sym,tf){
  let obStatus='UNTESTED';
  let entry='--';
  let sl='--';
+ let exit='--';
  let narrative='';
 
  if(distToPDH>=-(25*factor)){
@@ -1330,8 +1231,9 @@ function evaluateSMC(sym,tf){
   obLow=obHigh-obBuffer;
   entry=`$${fmt(obLow,d.dec)} - $${fmt(obHigh,d.dec)}`;
   sl=`$${fmt(obHigh*1.002,d.dec)}`;
+  exit=`$${fmt(eq,d.dec)}`;
   obStatus=d.price>=obLow&&d.price<=obHigh?'MITIGATING':'PENDING TAP';
-  narrative=`${tf.toUpperCase()} Supply Order Block created above PDH ($${fmt(d.pdh,d.dec)}). Target internal discount liquidity.`;
+  narrative=`${tf.toUpperCase()} Supply Order Block created above PDH ($${fmt(d.pdh,d.dec)}). First target EQ ($${fmt(eq,d.dec)}); then internal discount liquidity.`;
  }else if(distToPDL<=(25*factor)){
   action='BUY / LONG';
   stateText=tf==='5m'?'5M CHoCH BREAKOUT':'15M PDL LIQUIDITY RAID';
@@ -1340,6 +1242,7 @@ function evaluateSMC(sym,tf){
   obHigh=obLow+obBuffer;
   entry=`$${fmt(obLow,d.dec)} - $${fmt(obHigh,d.dec)}`;
   sl=`$${fmt(obLow*0.998,d.dec)}`;
+  exit=`$${fmt(eq,d.dec)}`;
   obStatus=d.price>=obLow&&d.price<=obHigh?'MITIGATING':'PENDING TAP';
   narrative=`${tf.toUpperCase()} Demand Order Block established near PDL ($${fmt(d.pdl,d.dec)}). Target EQ ($${fmt(eq,d.dec)}).`;
  }else{
@@ -1351,6 +1254,7 @@ function evaluateSMC(sym,tf){
    obLow=d.price;
    entry=`Retest $${fmt(obHigh,d.dec)}`;
    sl=`SL > $${fmt(d.pdh,d.dec)}`;
+   exit=`$${fmt(eq,d.dec)}`;
    obStatus='INACTIVE';
    narrative=`${tf.toUpperCase()} trading above 50% EQ range. High time-frame bears defending supply.`;
   }else{
@@ -1361,6 +1265,7 @@ function evaluateSMC(sym,tf){
    obHigh=d.price;
    entry=`Pullback $${fmt(obLow,d.dec)}`;
    sl=`SL < $${fmt(d.pdl,d.dec)}`;
+   exit=`$${fmt(eq,d.dec)}`;
    obStatus='INACTIVE';
    narrative=`${tf.toUpperCase()} testing discount array. Look for shift of character on 5m for entry.`;
   }
@@ -1373,6 +1278,7 @@ function evaluateSMC(sym,tf){
  tfData.obStatus=obStatus;
  tfData.entry=entry;
  tfData.sl=sl;
+ tfData.exit=exit;
  tfData.narrative=narrative;
 
  if(activeTF===tf)renderSMCUI(sym);
@@ -1488,6 +1394,7 @@ function renderSMCUI(sym){
  document.getElementById(`${prefix}-action`).innerText=tfData.action;
  document.getElementById(`${prefix}-entry`).innerText=tfData.entry;
  document.getElementById(`${prefix}-sl`).innerText=tfData.sl;
+ document.getElementById(`${prefix}-exit`).innerText=tfData.exit;
  document.getElementById(`${prefix}-narrative`).innerText=tfData.narrative;
 }
 
