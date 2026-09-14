@@ -621,98 +621,335 @@ button{font:inherit}
 }
 
 /* =========================================================
-   FINAL UI SKIN — VISUAL ONLY
-   Exact dashboard composition requested; no strategy/data logic changed.
+   UI PATCH — THEME CONTRAST + BTCUSD/ETHUSD CHART SELECTOR
+   Visual behavior only. No data/strategy logic is changed.
    ========================================================= */
-.app{max-width:1480px}
-body{padding:10px 14px 82px;background:radial-gradient(900px 420px at 8% -8%,rgba(0,217,255,.10),transparent 62%),radial-gradient(800px 380px at 95% 2%,rgba(132,63,255,.10),transparent 60%),var(--bg)}
-.header{position:relative;min-height:72px;margin-bottom:8px;border-radius:20px;padding:10px 16px;background:linear-gradient(110deg,rgba(7,16,28,.96),rgba(9,19,34,.88));border-color:rgba(0,217,255,.20);overflow:hidden}
-.header:after{content:"";position:absolute;right:18%;top:-80px;width:260px;height:180px;background:radial-gradient(circle,rgba(0,217,255,.10),transparent 70%);pointer-events:none}
-.logo{width:46px;height:46px;border-radius:14px;font-size:25px;background:linear-gradient(135deg,rgba(0,217,255,.22),rgba(125,65,255,.15));box-shadow:0 0 24px rgba(0,217,255,.08)}
-.brand-title{font-size:22px;letter-spacing:.9px}.brand-sub{font-size:8px;letter-spacing:1.2px}
-.header-right{gap:10px}.live{padding:8px 12px;border-radius:20px}.clock{padding:8px 11px;border-radius:10px}.theme-btn{width:42px;height:36px;border-radius:18px}
-.top-nav{margin-bottom:9px;padding:4px 8px;border-radius:15px;background:rgba(7,15,26,.86);border-color:rgba(0,217,255,.10);backdrop-filter:blur(14px)}
-.top-nav button{padding:9px 8px;font-size:10px;border-radius:10px}.top-nav button.active{background:linear-gradient(135deg,#087dff,#2457d6);box-shadow:0 6px 20px rgba(37,99,235,.32)}
-.market-grid{gap:12px;margin-bottom:10px}.market-card{border-radius:18px;padding:13px 16px;background:linear-gradient(145deg,#081525,#0b1727);border-color:rgba(0,217,255,.20)}
-.market-card:before{height:1px}.market-head{align-items:center}.asset-icon{width:42px;height:42px;border-radius:50%;font-size:22px;box-shadow:0 0 18px rgba(0,217,255,.12)}.asset-name{font-size:16px}.spot{font-size:9px}.live-price{font-size:25px}.price-change{font-size:10px}
-.market-card .chart-container{height:0;min-height:0;margin:0;border:0;overflow:hidden;opacity:0;pointer-events:none}.market-card .metrics-grid{display:none}
-/* Main 3-column dashboard */
-.dashboard-grid{display:grid;grid-template-columns:250px minmax(0,1fr) 330px;gap:12px;align-items:stretch}
-.panel{background:linear-gradient(145deg,#071321,#0b1726);border:1px solid rgba(0,217,255,.18);border-radius:18px;box-shadow:0 14px 38px rgba(0,0,0,.30);overflow:hidden}
-.symbol-panel{min-height:620px}.panel-head{height:56px;display:flex;align-items:center;gap:18px;padding:0 18px;border-bottom:1px solid rgba(148,163,184,.12);font-size:12px;font-weight:900}.panel-head .active-line{align-self:stretch;display:flex;align-items:center;border-bottom:2px solid var(--cyan);color:#fff}
-.search-box{margin:14px;padding:11px 13px;border:1px solid rgba(0,217,255,.16);border-radius:10px;color:var(--muted);font-size:10px;background:rgba(2,8,16,.6)}
-.symbol-list{padding:0 12px}.symbol-item{display:flex;align-items:center;justify-content:space-between;padding:13px 10px;margin-bottom:8px;border:1px solid rgba(0,217,255,.14);border-radius:12px;background:linear-gradient(110deg,rgba(0,217,255,.07),rgba(0,0,0,.10));}.symbol-left{display:flex;align-items:center;gap:10px}.symbol-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;font-size:18px}.symbol-name{font-weight:900;font-size:12px}.symbol-price{font:900 12px monospace;margin-top:3px}.symbol-change{font:900 10px monospace;color:var(--green);margin-top:2px}.star{color:#aab5c7;font-size:20px}
-.chart-panel{min-width:0;padding:0}.chart-title{display:flex;justify-content:space-between;align-items:center;padding:13px 17px 9px}.chart-symbol{display:flex;align-items:center;gap:10px}.chart-symbol .symbol-icon{width:38px;height:38px}.chart-symbol strong{font-size:18px}.chart-symbol .bigprice{font:900 20px monospace;margin-top:2px}.chart-change{color:var(--green);font:900 11px monospace;margin-left:8px}.ohlc{font:10px monospace;color:#b6c4d8}.chart-large{height:400px;margin:0 12px;border-radius:2px;background:linear-gradient(180deg,rgba(3,12,22,.96),rgba(3,9,17,.98));border:1px solid rgba(0,217,255,.11);overflow:hidden}.chart-large canvas{width:100%;height:100%;display:block}.chart-controls{display:flex;align-items:center;gap:6px;padding:9px 14px;border-top:1px solid rgba(148,163,184,.10);color:#d5deea;font-size:9px}.chart-controls span{padding:5px 8px}.chart-controls .on{background:#0b6fd7;border-radius:7px;color:#fff}.chart-options{margin-left:auto;display:flex;gap:12px;color:#c1ccda}.chart-options b{color:var(--cyan)}
-.signal-panel{min-height:620px}.signal-panel .section-title{font-size:15px}.signal-panel .section-head{padding:15px 16px;margin:0}.signal-card{margin:0 12px 10px;padding:13px;border-radius:14px;background:linear-gradient(145deg,rgba(8,20,33,.96),rgba(6,14,25,.96));border-color:rgba(0,217,255,.12)}.signal-card .pipeline{display:none}.signal-card .params{grid-template-columns:1fr 1fr 1fr}.signal-card .signal-targets{grid-template-columns:1fr 1fr}.signal-card .explain{font-size:9px;margin-top:8px}.signal-card .signal-top{margin-bottom:8px}.signal-asset{font-size:14px}.badge{font-size:9px;padding:6px 9px}
-.sentiment{margin:12px;border:1px solid rgba(0,217,255,.15);border-radius:14px;padding:14px;background:rgba(3,12,21,.65)}.sent-title{font-size:12px;font-weight:900;margin-bottom:10px}.sent-body{display:flex;align-items:center;gap:16px}.donut{width:104px;height:104px;border-radius:50%;background:conic-gradient(#00e59a 0 78%,#ff426b 78% 95%,#7386a6 95% 100%);display:grid;place-items:center;position:relative}.donut:after{content:"";width:70px;height:70px;border-radius:50%;background:#081421;position:absolute}.donut-text{position:relative;z-index:1;text-align:center;font-weight:900}.donut-text b{display:block;font-size:20px}.donut-text small{color:var(--green);font-size:9px}.legend{font-size:10px;line-height:2}.legend span{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.lg-green{background:#00e59a}.lg-red{background:#ff426b}.lg-blue{background:#7386a6}
-.bottom-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;margin-top:12px}.bottom-panel{min-height:180px}.metrics-show{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px}.metric-big{padding:14px 8px;border:1px solid rgba(0,217,255,.16);border-radius:11px;background:rgba(4,13,23,.72);text-align:center}.metric-big .lbl{color:#a0aec0;font-size:9px}.metric-big .num{font:900 21px monospace;margin-top:10px;color:var(--cyan)}.metric-big:nth-child(2) .num{color:#d78cff}.metric-big:nth-child(3) .num{color:#25e0d0}.metric-big:nth-child(4) .num{color:#00e59a}
-.activity-list{padding:6px 14px 12px}.activity{display:grid;grid-template-columns:42px 22px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(148,163,184,.09);font-size:9px}.activity:last-child{border-bottom:0}.activity-time{color:#a0aec0;font-family:monospace}.activity-icon{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#00b98a;color:#06120e;font-weight:900}.activity-icon.red{background:#ff426b;color:#fff}.activity-tag{color:#9aa8bb;font-family:monospace}
-.footer-ui{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:14px 10px;border-top:1px solid rgba(0,217,255,.10);color:#38c9f2;font-size:9px;letter-spacing:.4px}.footer-quote{color:#6f8299;letter-spacing:2px}
-/* Hide old order-block/SMC section visually; JS strategy state remains untouched. */
-#smc{display:none!important}
-#logs{display:none!important}
-.legacy-hidden{display:none!important}
-@media(max-width:1100px){.dashboard-grid{grid-template-columns:210px minmax(0,1fr) 290px}.chart-large{height:350px}.brand-title{font-size:18px}}
-@media(max-width:850px){.dashboard-grid{grid-template-columns:1fr}.symbol-panel,.signal-panel{min-height:auto}.chart-large{height:330px}.bottom-grid{grid-template-columns:1fr}.top-nav button:nth-child(n+5){display:none}.market-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){body{padding:7px 7px 72px}.header{padding:8px 10px}.brand-sub{display:none}.brand-title{font-size:15px}.logo{width:38px;height:38px}.clock{display:none}.market-grid{grid-template-columns:1fr;gap:7px}.market-card{padding:10px 12px}.market-card .asset-icon{width:34px;height:34px;font-size:18px}.live-price{font-size:20px}.dashboard-grid{gap:8px}.symbol-panel{display:none}.chart-large{height:285px;margin:0 7px}.chart-title{padding:10px}.ohlc{display:none}.metrics-show{grid-template-columns:repeat(2,1fr)}.top-nav{overflow:auto}.top-nav button{min-width:72px}.bottom-nav{display:flex!important}}
+html[data-theme="dark"] body{color:#f4f7fb;background-color:#070b12}
+html[data-theme="light"] body{color:#0f172a;background-color:#eef3f8}
+
+html[data-theme="dark"] .brand-title,
+html[data-theme="dark"] .asset-name,
+html[data-theme="dark"] .signal-asset,
+html[data-theme="dark"] .section-title,
+html[data-theme="dark"] .side-title,
+html[data-theme="dark"] .smc-top,
+html[data-theme="dark"] .ob-type{color:#f4f7fb}
+html[data-theme="light"] .brand-title,
+html[data-theme="light"] .asset-name,
+html[data-theme="light"] .signal-asset,
+html[data-theme="light"] .section-title,
+html[data-theme="light"] .side-title,
+html[data-theme="light"] .smc-top,
+html[data-theme="light"] .ob-type{color:#0f172a}
+
+html[data-theme="dark"] .spot,
+html[data-theme="dark"] .brand-sub,
+html[data-theme="dark"] .metric-label,
+html[data-theme="dark"] .param-lbl,
+html[data-theme="dark"] .explain,
+html[data-theme="dark"] .ob-range{color:#8190a6}
+html[data-theme="light"] .spot,
+html[data-theme="light"] .brand-sub,
+html[data-theme="light"] .metric-label,
+html[data-theme="light"] .param-lbl,
+html[data-theme="light"] .explain,
+html[data-theme="light"] .ob-range{color:#64748b}
+
+html[data-theme="dark"] .theme-btn,
+html[data-theme="dark"] .top-nav,
+html[data-theme="dark"] .market-card,
+html[data-theme="dark"] .section,
+html[data-theme="dark"] .side-panel,
+html[data-theme="dark"] .header{color:#f4f7fb}
+html[data-theme="light"] .theme-btn,
+html[data-theme="light"] .top-nav,
+html[data-theme="light"] .market-card,
+html[data-theme="light"] .section,
+html[data-theme="light"] .side-panel,
+html[data-theme="light"] .header{color:#0f172a}
+
+/* Make the two symbol cards unmistakably selectable. */
+.market-card[data-symbol]{cursor:pointer}
+.market-card[data-symbol].chart-selected{
+ border-color:var(--cyan);
+ box-shadow:0 0 0 1px color-mix(in srgb,var(--cyan) 28%,transparent),var(--shadow),0 0 26px color-mix(in srgb,var(--cyan) 10%,transparent);
+}
+.market-card[data-symbol].chart-selected:before{opacity:1}
+.market-card .symbol-select-hint{display:none}
+
+@media(max-width:700px){
+ .market-card[data-symbol]{cursor:pointer}
+ .market-card:not(.chart-selected) .chart-container,
+ .market-card:not(.chart-selected) .metrics-grid{display:none}
+ .market-card:not(.chart-selected){padding-bottom:11px}
+ .market-card.chart-selected .chart-container{display:block}
+ .market-card.chart-selected .metrics-grid{display:grid}
+ .market-card .market-head{min-height:45px}
+ .market-card .asset-name:after{
+  content:"  • TAP FOR CHART";
+  color:var(--cyan);
+  font-size:7px;
+  font-weight:800;
+  letter-spacing:.3px;
+ }
+ .market-card.chart-selected .asset-name:after{content:"  • CHART ACTIVE"}
+ .market-grid{margin-bottom:9px}
+}
+
 </style>
 </head>
 
 <body>
 <div class="app">
+
 <header class="header">
- <div class="brand"><div class="logo">⚡</div><div><div class="brand-title">DELTA TERMINAL</div><div class="brand-sub">TRADE SMARTER &nbsp;|&nbsp; TRADE DISCIPLINED</div></div></div>
- <div class="header-right"><div class="live"><span class="live-dot"></span>Live Market</div><div class="clock" id="utc-clock">00:00:00 UTC</div><button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️</button></div>
+ <div class="brand">
+  <div class="logo">⚡</div>
+  <div>
+   <div class="brand-title">DELTA TERMINAL</div>
+   <div class="brand-sub">QUANT TRADING DESK • SFP + MSS ENGINE</div>
+  </div>
+ </div>
+ <div class="header-right">
+  <div class="live"><span class="live-dot"></span>LIVE</div>
+  <div class="clock" id="utc-clock">00:00:00 UTC</div>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀️</button>
+ </div>
 </header>
+
 <nav class="top-nav">
- <button class="active" onclick="scrollToSection('markets',this)">⌂ Dashboard</button>
- <button onclick="scrollToSection('markets',this)">▥ Market</button>
- <button onclick="scrollToSection('smc',this)">◈ SMC</button>
- <button onclick="scrollToSection('signals',this)">⚡ Signals</button>
- <button onclick="scrollToSection('markets',this)">☆ Watchlist</button>
- <button onclick="scrollToSection('logs',this)">⌁ Analytics</button>
- <button onclick="toggleTheme()">⚙ Settings</button>
+ <button class="active" onclick="scrollToSection('markets',this)">Overview</button>
+ <button onclick="scrollToSection('signals',this)">Signals</button>
+ <button onclick="scrollToSection('smc',this)">SMC</button>
+ <button onclick="scrollToSection('logs',this)">Logs</button>
 </nav>
+
 <section id="markets">
  <div class="market-grid">
-  <div class="market-card"><div class="market-head"><div class="asset"><div class="asset-icon">🟠</div><div><div class="asset-name">BTCUSD</div><div class="spot">Spot: <span id="btc-spot">--</span> • Vol: <span id="btc-vol">--</span></div></div></div><div class="price"><div class="live-price" id="btc-price">Loading...</div><div class="price-change" id="btc-change">LIVE</div></div></div><div class="chart-container"><canvas id="btc-chart"></canvas></div><div class="metrics-grid"><div class="metric"><div class="metric-label">PDH</div><div class="metric-value cyan" id="btc-pdh">--</div></div><div class="metric"><div class="metric-label">PDL</div><div class="metric-value yellow" id="btc-pdl">--</div></div><div class="metric"><div class="metric-label">Dist PDH</div><div class="metric-value" id="btc-dist-pdh">--</div></div><div class="metric"><div class="metric-label">Dist PDL</div><div class="metric-value" id="btc-dist-pdl">--</div></div></div><div class="metrics-grid"><div class="metric"><div class="metric-label">Today High</div><div class="metric-value cyan" id="btc-cdh">--</div></div><div class="metric"><div class="metric-label">Today Low</div><div class="metric-value yellow" id="btc-cdl">--</div></div><div class="metric"><div class="metric-label">Market</div><div class="metric-value green">LIVE</div></div><div class="metric"><div class="metric-label">Feed</div><div class="metric-value green">TICK</div></div></div></div>
-  <div class="market-card"><div class="market-head"><div class="asset"><div class="asset-icon">🔷</div><div><div class="asset-name">ETHUSD</div><div class="spot">Spot: <span id="eth-spot">--</span> • Vol: <span id="eth-vol">--</span></div></div></div><div class="price"><div class="live-price" id="eth-price">Loading...</div><div class="price-change" id="eth-change">LIVE</div></div></div><div class="chart-container"><canvas id="eth-chart"></canvas></div><div class="metrics-grid"><div class="metric"><div class="metric-label">PDH</div><div class="metric-value cyan" id="eth-pdh">--</div></div><div class="metric"><div class="metric-label">PDL</div><div class="metric-value yellow" id="eth-pdl">--</div></div><div class="metric"><div class="metric-label">Dist PDH</div><div class="metric-value" id="eth-dist-pdh">--</div></div><div class="metric"><div class="metric-label">Dist PDL</div><div class="metric-value" id="eth-dist-pdl">--</div></div></div><div class="metrics-grid"><div class="metric"><div class="metric-label">Today High</div><div class="metric-value cyan" id="eth-cdh">--</div></div><div class="metric"><div class="metric-label">Today Low</div><div class="metric-value yellow" id="eth-cdl">--</div></div><div class="metric"><div class="metric-label">Market</div><div class="metric-value green">LIVE</div></div><div class="metric"><div class="metric-label">Feed</div><div class="metric-value green">TICK</div></div></div></div>
+
+  <div class="market-card chart-selected" data-symbol="BTCUSD" onclick="selectChartSymbol('BTCUSD')">
+   <div class="market-head">
+    <div class="asset">
+     <div class="asset-icon">🟠</div>
+     <div>
+      <div class="asset-name">BTC/USD (5M)</div>
+      <div class="spot">Spot: <span id="btc-spot">--</span> • Vol: <span id="btc-vol">--</span></div>
+     </div>
+    </div>
+    <div class="price">
+     <div class="live-price" id="btc-price">Loading...</div>
+     <div class="price-change" id="btc-change">LIVE</div>
+    </div>
+   </div>
+   
+   <!-- REAL-TIME 5M CANDLESTICK CHART -->
+   <div class="chart-container">
+    <canvas id="btc-chart"></canvas>
+   </div>
+
+   <div class="metrics-grid">
+    <div class="metric"><div class="metric-label">PDH</div><div class="metric-value cyan" id="btc-pdh">--</div></div>
+    <div class="metric"><div class="metric-label">PDL</div><div class="metric-value yellow" id="btc-pdl">--</div></div>
+    <div class="metric"><div class="metric-label">Dist PDH</div><div class="metric-value" id="btc-dist-pdh">--</div></div>
+    <div class="metric"><div class="metric-label">Dist PDL</div><div class="metric-value" id="btc-dist-pdl">--</div></div>
+   </div>
+   <div class="metrics-grid" style="margin-top:6px">
+    <div class="metric"><div class="metric-label">Today High</div><div class="metric-value cyan" id="btc-cdh">--</div></div>
+    <div class="metric"><div class="metric-label">Today Low</div><div class="metric-value yellow" id="btc-cdl">--</div></div>
+    <div class="metric"><div class="metric-label">Market</div><div class="metric-value green">LIVE</div></div>
+    <div class="metric"><div class="metric-label">Feed</div><div class="metric-value green">TICK</div></div>
+   </div>
+  </div>
+
+  <div class="market-card" data-symbol="ETHUSD" onclick="selectChartSymbol('ETHUSD')">
+   <div class="market-head">
+    <div class="asset">
+     <div class="asset-icon">🔷</div>
+     <div>
+      <div class="asset-name">ETH/USD (5M)</div>
+      <div class="spot">Spot: <span id="eth-spot">--</span> • Vol: <span id="eth-vol">--</span></div>
+     </div>
+    </div>
+    <div class="price">
+     <div class="live-price" id="eth-price">Loading...</div>
+     <div class="price-change" id="eth-change">LIVE</div>
+    </div>
+   </div>
+
+   <!-- REAL-TIME 5M CANDLESTICK CHART -->
+   <div class="chart-container">
+    <canvas id="eth-chart"></canvas>
+   </div>
+
+   <div class="metrics-grid">
+    <div class="metric"><div class="metric-label">PDH</div><div class="metric-value cyan" id="eth-pdh">--</div></div>
+    <div class="metric"><div class="metric-label">PDL</div><div class="metric-value yellow" id="eth-pdl">--</div></div>
+    <div class="metric"><div class="metric-label">Dist PDH</div><div class="metric-value" id="eth-dist-pdh">--</div></div>
+    <div class="metric"><div class="metric-label">Dist PDL</div><div class="metric-value" id="eth-dist-pdl">--</div></div>
+   </div>
+   <div class="metrics-grid" style="margin-top:6px">
+    <div class="metric"><div class="metric-label">Today High</div><div class="metric-value cyan" id="eth-cdh">--</div></div>
+    <div class="metric"><div class="metric-label">Today Low</div><div class="metric-value yellow" id="eth-cdl">--</div></div>
+    <div class="metric"><div class="metric-label">Market</div><div class="metric-value green">LIVE</div></div>
+    <div class="metric"><div class="metric-label">Feed</div><div class="metric-value green">TICK</div></div>
+   </div>
+  </div>
+
  </div>
 </section>
-<div class="dashboard-grid">
- <aside class="panel symbol-panel">
-  <div class="panel-head"><span class="active-line">Symbols</span><span>Watchlist</span></div>
-  <div class="search-box">⌕ &nbsp;Search symbol...</div>
-  <div class="symbol-list">
-   <div class="symbol-item"><div class="symbol-left"><div class="symbol-icon">🟠</div><div><div class="symbol-name">BTCUSD</div><div class="symbol-price" id="side-btc">--</div><div class="symbol-change">LIVE</div></div></div><div class="star">☆</div></div>
-   <div class="symbol-item"><div class="symbol-left"><div class="symbol-icon">🔷</div><div><div class="symbol-name">ETHUSD</div><div class="symbol-price" id="side-eth">--</div><div class="symbol-change">LIVE</div></div></div><div class="star">☆</div></div>
+
+<div class="desktop-layout">
+<div>
+
+<section class="section" id="signals">
+ <div class="section-head">
+  <div class="section-title">⚡ SFP + MSS SIGNALS</div>
+  <div class="tabs">
+   <button class="tab active" id="sfp-tab-15m" onclick="switchSFPTF('15m')">15M</button>
+   <button class="tab" id="sfp-tab-5m" onclick="switchSFPTF('5m')">5M</button>
   </div>
- </aside>
- <main class="panel chart-panel">
-  <div class="chart-title"><div class="chart-symbol"><div class="symbol-icon">🟠</div><div><strong>BTCUSD</strong><div><span class="bigprice" id="btc-price-main">--</span><span class="chart-change" id="btc-change-main">LIVE</span></div></div></div><div class="ohlc">O <span id="btc-o">--</span> &nbsp; H <span id="btc-h">--</span> &nbsp; L <span id="btc-l">--</span> &nbsp; C <span id="btc-c">--</span></div></div>
-  <div class="chart-large"><canvas id="btc-chart-main"></canvas></div>
-  <div class="chart-controls"><span>1m</span><span class="on">5m</span><span>15m</span><span>1h</span><span>4h⌄</span><span>⌗</span><span>⛶</span><div class="chart-options"><span>Volume <b>☑</b></span><span>SMC <b>☑</b></span><span>Liquidity <b>☑</b></span><span>SFP <b>☑</b></span><span>MSS <b>☑</b></span><span>Auto</span><span>⚙</span></div></div>
- </main>
- <aside class="panel signal-panel" id="signals">
-  <div class="section-head"><div class="section-title">🎯 Live Signals</div><span style="color:var(--cyan);font-size:10px">View All →</span></div>
-  <div class="tabs" style="margin:0 12px 10px"><button class="tab active" id="sfp-tab-15m" onclick="switchSFPTF('15m')">15M</button><button class="tab" id="sfp-tab-5m" onclick="switchSFPTF('5m')">5M</button></div>
-  <div class="signal-card"><div class="signal-top"><span class="signal-asset">🟠 BTCUSD <span class="sfp-tf-label">15M</span></span><span class="badge badge-wait" id="btc-sfp-badge">NO SWEEP</span></div><div class="pipeline"><div class="step active-step" id="btc-step-1">ZONE</div><div class="step" id="btc-step-2">SWEEP</div><div class="step" id="btc-step-3">MSS</div><div class="step" id="btc-step-4">EXEC</div></div><div class="params"><div class="param"><div class="param-lbl">Signal</div><div class="param-val" id="btc-sfp-signal">WAIT</div></div><div class="param"><div class="param-lbl">Entry</div><div class="param-val" id="btc-sfp-entry">--</div></div><div class="param"><div class="param-lbl">SL</div><div class="param-val red" id="btc-sfp-sl">--</div></div></div><div class="params signal-targets"><div class="param"><div class="param-lbl">TP1 / EQ</div><div class="param-val green" id="btc-sfp-tp1">--</div></div><div class="param"><div class="param-lbl">TP2 / Pool</div><div class="param-val cyan" id="btc-sfp-tp2">--</div></div></div><div class="explain" id="btc-sfp-rationale">Waiting for institutional sweep at HTF key levels...</div></div>
-  <div class="signal-card"><div class="signal-top"><span class="signal-asset">🔷 ETHUSD <span class="sfp-tf-label">15M</span></span><span class="badge badge-wait" id="eth-sfp-badge">NO SWEEP</span></div><div class="pipeline"><div class="step active-step" id="eth-step-1">ZONE</div><div class="step" id="eth-step-2">SWEEP</div><div class="step" id="eth-step-3">MSS</div><div class="step" id="eth-step-4">EXEC</div></div><div class="params"><div class="param"><div class="param-lbl">Signal</div><div class="param-val" id="eth-sfp-signal">WAIT</div></div><div class="param"><div class="param-lbl">Entry</div><div class="param-val" id="eth-sfp-entry">--</div></div><div class="param"><div class="param-lbl">SL</div><div class="param-val red" id="eth-sfp-sl">--</div></div></div><div class="params signal-targets"><div class="param"><div class="param-lbl">TP1 / EQ</div><div class="param-val green" id="eth-sfp-tp1">--</div></div><div class="param"><div class="param-lbl">TP2 / Pool</div><div class="param-val cyan" id="eth-sfp-tp2">--</div></div></div><div class="explain" id="eth-sfp-rationale">Waiting for institutional sweep at HTF key levels...</div></div>
-  <div class="sentiment"><div class="sent-title">Market Sentiment</div><div class="sent-body"><div class="donut"><div class="donut-text"><b>78%</b><small>Bullish</small></div></div><div class="legend"><div><span class="lg-green"></span>Bullish &nbsp; 78%</div><div><span class="lg-red"></span>Bearish &nbsp; 17%</div><div><span class="lg-blue"></span>Neutral &nbsp;&nbsp; 5%</div></div></div></div>
- </aside>
+ </div>
+
+ <div class="signal-grid">
+
+  <div class="signal-card">
+   <div class="signal-top">
+    <span class="signal-asset">🟠 BTC <span class="sfp-tf-label">15M</span></span>
+    <span class="badge badge-wait" id="btc-sfp-badge">NO SWEEP</span>
+   </div>
+
+   <div class="pipeline">
+    <div class="step active-step" id="btc-step-1"><span>01</span>ZONE</div>
+    <div class="step" id="btc-step-2"><span>02</span>SWEEP</div>
+    <div class="step" id="btc-step-3"><span>03</span>MSS</div>
+    <div class="step" id="btc-step-4"><span>04</span>EXEC</div>
+   </div>
+
+   <div class="params">
+    <div class="param"><div class="param-lbl">Signal</div><div class="param-val" id="btc-sfp-signal">WAIT</div></div>
+    <div class="param"><div class="param-lbl">Entry</div><div class="param-val" id="btc-sfp-entry">--</div></div>
+    <div class="param"><div class="param-lbl">SL</div><div class="param-val red" id="btc-sfp-sl">--</div></div>
+   </div>
+   <div class="params signal-targets">
+    <div class="param"><div class="param-lbl">TP1 / EQ</div><div class="param-val green" id="btc-sfp-tp1">--</div></div>
+    <div class="param"><div class="param-lbl">TP2 / Pool</div><div class="param-val cyan" id="btc-sfp-tp2">--</div></div>
+   </div>
+   <div class="explain" id="btc-sfp-rationale">Waiting for institutional sweep at HTF key levels...</div>
+  </div>
+
+  <div class="signal-card">
+   <div class="signal-top">
+    <span class="signal-asset">🔷 ETH <span class="sfp-tf-label">15M</span></span>
+    <span class="badge badge-wait" id="eth-sfp-badge">NO SWEEP</span>
+   </div>
+
+   <div class="pipeline">
+    <div class="step active-step" id="eth-step-1"><span>01</span>ZONE</div>
+    <div class="step" id="eth-step-2"><span>02</span>SWEEP</div>
+    <div class="step" id="eth-step-3"><span>03</span>MSS</div>
+    <div class="step" id="eth-step-4"><span>04</span>EXEC</div>
+   </div>
+
+   <div class="params">
+    <div class="param"><div class="param-lbl">Signal</div><div class="param-val" id="eth-sfp-signal">WAIT</div></div>
+    <div class="param"><div class="param-lbl">Entry</div><div class="param-val" id="eth-sfp-entry">--</div></div>
+    <div class="param"><div class="param-lbl">SL</div><div class="param-val red" id="eth-sfp-sl">--</div></div>
+   </div>
+   <div class="params signal-targets">
+    <div class="param"><div class="param-lbl">TP1 / EQ</div><div class="param-val green" id="eth-sfp-tp1">--</div></div>
+    <div class="param"><div class="param-lbl">TP2 / Pool</div><div class="param-val cyan" id="eth-sfp-tp2">--</div></div>
+   </div>
+   <div class="explain" id="eth-sfp-rationale">Waiting for institutional sweep at HTF key levels...</div>
+  </div>
+
+ </div>
+</section>
+
+<section class="section" id="smc">
+ <div class="section-head">
+  <div class="section-title">🎯 SMC / ORDER BLOCK</div>
+  <div class="tabs">
+   <button class="tab active" id="tab-15m" onclick="switchTF('15m')">15M</button>
+   <button class="tab" id="tab-5m" onclick="switchTF('5m')">5M</button>
+  </div>
+ </div>
+
+ <div class="smc-grid">
+
+  <div class="smc-card">
+   <div class="smc-top">
+    <span style="font-size:11px;font-weight:900">🟠 BTC (<span class="tf-label">15M</span>) • <span id="btc-smc-state">SCANNING</span></span>
+    <span class="badge badge-wait" id="btc-badge">WAITING</span>
+   </div>
+   <div class="ob-panel">
+    <div>
+     <div class="ob-type" id="btc-ob-type">Scanning OB...</div>
+     <div class="ob-range" id="btc-ob-range">Zone: --</div>
+    </div>
+    <div class="ob-status badge-wait" id="btc-ob-status">UNTESTED</div>
+   </div>
+   <div class="trade-param-row">
+    <div class="trade-param-box"><div class="param-lbl">Action</div><div class="param-val" id="btc-action">MONITOR</div></div>
+    <div class="trade-param-box"><div class="param-lbl">Entry / OB</div><div class="param-val" id="btc-entry">--</div></div>
+    <div class="trade-param-box"><div class="param-lbl">Stop Loss</div><div class="param-val red" id="btc-sl">--</div></div>
+   </div>
+   <div class="explain" id="btc-narrative">Scanning OB footprint and structure...</div>
+  </div>
+
+  <div class="smc-card">
+   <div class="smc-top">
+    <span style="font-size:11px;font-weight:900">🔷 ETH (<span class="tf-label">15M</span>) • <span id="eth-smc-state">SCANNING</span></span>
+    <span class="badge badge-wait" id="eth-badge">WAITING</span>
+   </div>
+   <div class="ob-panel">
+    <div>
+     <div class="ob-type" id="eth-ob-type">Scanning OB...</div>
+     <div class="ob-range" id="eth-ob-range">Zone: --</div>
+    </div>
+    <div class="ob-status badge-wait" id="eth-ob-status">UNTESTED</div>
+   </div>
+   <div class="trade-param-row">
+    <div class="trade-param-box"><div class="param-lbl">Action</div><div class="param-val" id="eth-action">MONITOR</div></div>
+    <div class="trade-param-box"><div class="param-lbl">Entry / OB</div><div class="param-val" id="eth-entry">--</div></div>
+    <div class="trade-param-box"><div class="param-lbl">Stop Loss</div><div class="param-val red" id="eth-sl">--</div></div>
+   </div>
+   <div class="explain" id="eth-narrative">Scanning OB footprint and structure...</div>
+  </div>
+
+ </div>
+</section>
+
+<section class="section" id="logs">
+ <div class="console-header">
+  <span>📜 AUDIT LOGS • <span id="log-active-tf">15M</span></span>
+  <span style="color:var(--cyan);cursor:pointer" onclick="clearLogs()">CLEAR</span>
+ </div>
+ <div class="console-box" id="console-logs">
+  <div class="log-line"><span class="log-time">[INIT]</span> SFP + MSS Strategy Engine active. Listening for Wick Rejections...</div>
+ </div>
+</section>
+
 </div>
-<div class="bottom-grid">
- <section class="panel bottom-panel"><div class="section-head" style="padding:14px 16px;margin:0"><div class="section-title">▣ Key Metrics</div></div><div class="metrics-show"><div class="metric-big"><div class="lbl">Open Positions</div><div class="num">0</div></div><div class="metric-big"><div class="lbl">Total Signals</div><div class="num">12</div></div><div class="metric-big"><div class="lbl">Win Rate</div><div class="num">83.3%</div></div><div class="metric-big"><div class="lbl">Today P&amp;L</div><div class="num">+2.45%</div></div></div></section>
- <section class="panel bottom-panel"><div class="section-head" style="padding:14px 16px;margin:0"><div class="section-title">♟ Recent Activity</div><span style="color:var(--cyan);font-size:10px">View All →</span></div><div class="activity-list" id="activity-list"><div class="activity"><span class="activity-time">13:22</span><span class="activity-icon">↑</span><span>BUY signal generated on BTCUSD</span><span class="activity-tag">Bullish MSS</span></div><div class="activity"><span class="activity-time">13:18</span><span class="activity-icon red">↓</span><span>SELL signal generated on ETHUSD</span><span class="activity-tag">Bearish SFP</span></div><div class="activity"><span class="activity-time">13:15</span><span class="activity-icon">↟</span><span>Liquidity Sweep detected on ETHUSD</span><span class="activity-tag">Sweep High</span></div><div class="activity"><span class="activity-time">13:12</span><span class="activity-icon">↑</span><span>MSS confirmed on BTCUSD</span><span class="activity-tag">Trend Change</span></div><div class="activity"><span class="activity-time">13:08</span><span class="activity-icon red">↑</span><span>Price rejected from key level on ETHUSD</span><span class="activity-tag">Rejection</span></div></div></section>
+
+<aside class="side-panel">
+ <div class="side-title">⚡ TERMINAL STATUS</div>
+ <div class="side-row"><span>WebSocket</span><span>READY</span></div>
+ <div class="side-row"><span>BTC/USD</span><span id="side-btc">--</span></div>
+ <div class="side-row"><span>ETH/USD</span><span id="side-eth">--</span></div>
+ <div class="side-row"><span>SMC Engine</span><span>ACTIVE</span></div>
+ <div class="side-row"><span>SFP Engine</span><span>ACTIVE</span></div>
+ <div class="side-row"><span>15M / 5M</span><span>READY</span></div>
+</aside>
 </div>
-<div class="footer-ui"><span>DELTA TERMINAL v2.0 &nbsp;|&nbsp; Real-time Market Analysis &nbsp;|&nbsp; Built for Smarter Traders</span><span class="footer-quote">“PATIENCE &nbsp; DISCIPLINE &nbsp; CONSISTENCY &nbsp; = &nbsp; FREEDOM”</span></div>
-<!-- Hidden legacy UI anchors: retained only so the existing strategy/render functions continue to work unchanged. -->
-<div class="legacy-hidden">
- <section id="smc"><button id="tab-15m"></button><button id="tab-5m"></button><span id="btc-smc-state"></span><span id="btc-badge"></span><span id="btc-ob-type"></span><span id="btc-ob-range"></span><span id="btc-ob-status"></span><span id="btc-action"></span><span id="btc-entry"></span><span id="btc-sl"></span><span id="btc-narrative"></span><span id="eth-smc-state"></span><span id="eth-badge"></span><span id="eth-ob-type"></span><span id="eth-ob-range"></span><span id="eth-ob-status"></span><span id="eth-action"></span><span id="eth-entry"></span><span id="eth-sl"></span><span id="eth-narrative"></span></section>
- <section id="logs"><span id="log-active-tf">15M</span><div id="console-logs"><div class="log-line"><span class="log-time">[INIT]</span> SFP + MSS Strategy Engine active.</div></div></section>
- <canvas id="eth-chart"></canvas>
+
+<div class="bottom-nav">
+ <button class="active" onclick="scrollToSection('markets',this)"><span>⌂</span>Markets</button>
+ <button onclick="scrollToSection('signals',this)"><span>⚡</span>Signals</button>
+ <button onclick="scrollToSection('smc',this)"><span>◈</span>SMC</button>
+ <button onclick="scrollToSection('logs',this)"><span>▤</span>Logs</button>
+ <button onclick="toggleTheme()"><span>☼</span>Theme</button>
 </div>
-</div>
+
 <script>
 /* =========================
    UI HELPERS ONLY
@@ -729,6 +966,23 @@ function toggleTheme(){
  applyTheme(currentTheme);
 }
 applyTheme(currentTheme);
+
+
+let selectedChartSymbol='BTCUSD';
+function selectChartSymbol(sym){
+ selectedChartSymbol=sym;
+ document.querySelectorAll('.market-card[data-symbol]').forEach(card=>{
+  card.classList.toggle('chart-selected',card.dataset.symbol===sym);
+ });
+ // On small screens, bring the selected symbol's existing chart into view.
+ if(window.innerWidth<=700){
+  document.querySelector('.market-card[data-symbol="'+sym+'"]')?.scrollIntoView({behavior:'smooth',block:'center'});
+ }
+ // Redraw the already-existing chart after the layout changes.
+ requestAnimationFrame(()=>{
+  drawLiveChart(sym);
+ });
+}
 
 function scrollToSection(id,btn){
  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -761,6 +1015,12 @@ function switchSFPTF(tf){
  renderSFPUI('ETHUSD');
  filterLogs();
 }
+
+
+window.addEventListener('resize',()=>{
+ const active=document.querySelector('.market-card[data-symbol="'+selectedChartSymbol+'"]');
+ if(active) requestAnimationFrame(()=>drawLiveChart(selectedChartSymbol));
+});
 
 function updateClock(){
  const now=new Date();
@@ -1374,30 +1634,6 @@ setInterval(()=>{
 
 fetchDailyStats();
 connectWS();
-
-/* Visual-only chart mirror: renders the existing BTC candle data on the new central canvas. */
-(function(){
- function mirror(){
-  const src=document.getElementById('btc-chart'), dst=document.getElementById('btc-chart-main');
-  if(!src||!dst)return;
-  const d=typeof state!=='undefined'&&state.BTCUSD;
-  if(!d||!d.candles||!d.candles.length)return;
-  const r=dst.parentElement.getBoundingClientRect(); dst.width=Math.max(10,r.width*devicePixelRatio); dst.height=Math.max(10,r.height*devicePixelRatio);
-  const c=dst.getContext('2d'); const W=dst.width,H=dst.height; c.clearRect(0,0,W,H);
-  c.fillStyle='#06111d'; c.fillRect(0,0,W,H);
-  const cs=d.candles.slice(-40); let lo=Math.min(...cs.map(x=>x.low)),hi=Math.max(...cs.map(x=>x.high)); if(hi<=lo){hi=lo+1}
-  const pad=18*devicePixelRatio, chartW=W-70*devicePixelRatio, chartH=H-35*devicePixelRatio, step=chartW/cs.length;
-  c.strokeStyle='rgba(83,140,180,.14)';c.lineWidth=1*devicePixelRatio;
-  for(let i=0;i<7;i++){let y=pad+i*(chartH/6);c.beginPath();c.moveTo(0,y);c.lineTo(chartW,y);c.stroke()}
-  for(let i=0;i<9;i++){let x=i*(chartW/8);c.beginPath();c.moveTo(x,0);c.lineTo(x,chartH);c.stroke()}
-  const y=v=>pad+(hi-v)/(hi-lo)*chartH;
-  cs.forEach((x,i)=>{const xx=i*step+step*.5, yo=y(x.open), yc=y(x.close), yh=y(x.high), yl=y(x.low), up=x.close>=x.open; c.strokeStyle=up?'#00e59a':'#ff426b';c.fillStyle=up?'#00c995':'#ff426b';c.lineWidth=Math.max(1,devicePixelRatio);c.beginPath();c.moveTo(xx,yh);c.lineTo(xx,yl);c.stroke();const bw=Math.max(3,step*.58);c.fillRect(xx-bw/2,Math.min(yo,yc),bw,Math.max(2,Math.abs(yc-yo)));});
-  c.fillStyle='#8190a6';c.font=`${9*devicePixelRatio}px monospace`;c.textAlign='right'; for(let i=0;i<5;i++){let v=hi-(hi-lo)*i/4;c.fillText(fmt(v,d.dec),W-5*devicePixelRatio,pad+i*(chartH/4)+3*devicePixelRatio)}
-  const p=d.price; if(p){const yp=y(p);c.strokeStyle='#00d9ff';c.setLineDash([4*devicePixelRatio,4*devicePixelRatio]);c.beginPath();c.moveTo(0,yp);c.lineTo(chartW,yp);c.stroke();c.setLineDash([]);c.fillStyle='#00bfa5';c.fillRect(chartW,yp-10*devicePixelRatio,62*devicePixelRatio,20*devicePixelRatio);c.fillStyle='#06111d';c.font=`bold ${9*devicePixelRatio}px monospace`;c.textAlign='left';c.fillText(fmt(p,d.dec),chartW+4*devicePixelRatio,yp+3*devicePixelRatio)}
- }
- function sync(){ const d=typeof state!=='undefined'&&state.BTCUSD; if(d){const p=document.getElementById('btc-price-main'),ch=document.getElementById('btc-change-main'); if(p)p.textContent='$'+fmt(d.price,d.dec); if(ch)ch.textContent=document.getElementById('btc-change')?.textContent||'LIVE'; const c=d.candles?.[d.candles.length-1]; if(c){document.getElementById('btc-o').textContent=fmt(c.open,d.dec);document.getElementById('btc-h').textContent=fmt(c.high,d.dec);document.getElementById('btc-l').textContent=fmt(c.low,d.dec);document.getElementById('btc-c').textContent=fmt(c.close,d.dec)}} mirror();}
- setInterval(sync,500);
-})();
 </script>
 </body>
 </html>
