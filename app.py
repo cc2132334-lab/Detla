@@ -1237,6 +1237,57 @@ function updateMetricsUI(sym){
 }
 
 /* =========================
+   0.5 SEC FAST REFRESH ENGINE
+   ========================= */
+async function fetchLiveTickers(){
+ try{
+  const res=await fetch("https://api.india.delta.exchange/v2/tickers");
+  const data=await res.json();
+  if(data.result){
+   data.result.forEach(item=>{
+    const sym=item.symbol;
+    if(sym&&state[sym]){
+     const d=state[sym];
+     const newPrice=parseFloat(item.mark_price||item.close||0);
+
+     if(newPrice>0){
+      const pEl=document.getElementById(sym==='BTCUSD'?'btc-price':'eth-price');
+
+      if(d.price&&newPrice!==d.price){
+       pEl.classList.remove('price-up','price-down');
+       void pEl.offsetWidth;
+       pEl.classList.add(newPrice>d.price?'price-up':'price-down');
+      }
+
+      d.price=newPrice;
+      pEl.innerText='$'+fmt(newPrice,d.dec);
+
+      if(!d.cdh||newPrice>d.cdh)d.cdh=newPrice;
+      if(!d.cdl||newPrice<d.cdl)d.cdl=newPrice;
+
+      const chEl=document.getElementById(sym==='BTCUSD'?'btc-change':'eth-change');
+      if(chEl){
+       chEl.innerText='LIVE • '+new Date().toLocaleTimeString();
+       chEl.className='price-change '+(d.price>=newPrice?'price-up':'price-down');
+      }
+
+      evaluateSMC(sym,'15m');
+      evaluateSMC(sym,'5m');
+      evaluateSFPStrategy(sym,'15m');
+      evaluateSFPStrategy(sym,'5m');
+     }
+
+     if(item.spot_price)d.spot=parseFloat(item.spot_price);
+     if(item.volume)d.vol=parseFloat(item.volume);
+
+     updateMetricsUI(sym);
+    }
+   });
+  }
+ }catch(e){}
+}
+
+/* =========================
    ORIGINAL DIRECT CLIENT WEBSOCKET
    ========================= */
 function connectWS(){
@@ -1302,6 +1353,10 @@ function connectWS(){
 
 fetchDailyStats();
 setInterval(fetchDailyStats,60000);
+
+fetchLiveTickers();
+setInterval(fetchLiveTickers,500);
+
 connectWS();
 </script>
 </body>
