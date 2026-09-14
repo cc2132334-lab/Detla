@@ -619,6 +619,241 @@ button{font:inherit}
  .chart-container{height:150px}
  .section-title{font-size:9px}
 }
+
+/* =========================================================
+   DYNAMIC UI ENHANCEMENT — VISUAL LAYER ONLY
+   ========================================================= */
+:root{
+ --ui-glow:rgba(0,217,255,.24);
+ --ui-fast:120ms;
+ --ui-smooth:240ms;
+}
+
+body{
+ background:
+   radial-gradient(700px 320px at 8% -5%,rgba(0,217,255,.10),transparent 62%),
+   radial-gradient(620px 300px at 96% 4%,rgba(75,156,255,.09),transparent 60%),
+   var(--bg);
+}
+
+/* Header */
+.header{
+ transition:transform var(--ui-smooth) ease, box-shadow var(--ui-smooth) ease,
+            border-color var(--ui-smooth) ease;
+}
+.header:hover{
+ transform:translateY(-1px);
+ box-shadow:0 18px 46px rgba(0,0,0,.42);
+ border-color:var(--border2);
+}
+.logo{
+ position:relative;
+ overflow:hidden;
+}
+.logo:after{
+ content:"";
+ position:absolute;
+ inset:-40%;
+ background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.20),transparent 65%);
+ transform:translateX(-80%) rotate(10deg);
+ animation:logoSweep 4.5s ease-in-out infinite;
+}
+@keyframes logoSweep{
+ 0%,70%,100%{transform:translateX(-90%) rotate(10deg)}
+ 84%{transform:translateX(90%) rotate(10deg)}
+}
+
+/* Live indicator */
+.live{
+ box-shadow:0 0 0 rgba(0,229,154,0);
+ animation:liveAura 2.2s ease-in-out infinite;
+}
+@keyframes liveAura{
+ 50%{box-shadow:0 0 20px rgba(0,229,154,.08)}
+}
+
+/* Navigation */
+.top-nav button,.bottom-nav button,.tab,.theme-btn{
+ transition:transform var(--ui-fast) ease, background var(--ui-smooth) ease,
+             color var(--ui-smooth) ease, box-shadow var(--ui-smooth) ease;
+}
+.top-nav button:hover,.bottom-nav button:hover,.tab:hover,.theme-btn:hover{
+ transform:translateY(-1px);
+}
+
+/* Market cards */
+.market-card{
+ isolation:isolate;
+}
+.market-card:after{
+ content:"";
+ position:absolute;
+ width:180px;height:180px;
+ right:-90px;top:-95px;
+ border-radius:50%;
+ background:radial-gradient(circle,rgba(0,217,255,.11),transparent 68%);
+ pointer-events:none;
+ z-index:-1;
+ transition:transform .45s ease,opacity .45s ease;
+}
+.market-card:hover:after{
+ transform:scale(1.35);
+ opacity:1.3;
+}
+.market-card .asset-icon{
+ transition:transform .25s ease, box-shadow .25s ease;
+}
+.market-card:hover .asset-icon{
+ transform:scale(1.06) rotate(-2deg);
+ box-shadow:0 0 20px rgba(0,217,255,.12);
+}
+.live-price{
+ letter-spacing:-.6px;
+}
+.price-flash{
+ animation:priceFlash .42s ease;
+}
+@keyframes priceFlash{
+ 0%{filter:brightness(1)}
+ 45%{filter:brightness(1.8)}
+ 100%{filter:brightness(1)}
+}
+
+/* Chart */
+.chart-container{
+ transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+}
+.market-card:hover .chart-container{
+ border-color:var(--border2);
+ box-shadow:inset 0 0 20px rgba(0,0,0,.34),0 0 18px rgba(0,217,255,.05);
+}
+.chart-container canvas{cursor:crosshair}
+
+/* Metric tiles */
+.metric,.param,.trade-param-box,.ob-panel,.side-row,.step{
+ transition:transform .18s ease, border-color .2s ease, background .2s ease,
+             box-shadow .2s ease;
+}
+.metric:hover,.param:hover,.trade-param-box:hover,.side-row:hover{
+ transform:translateY(-2px);
+ border-color:var(--border2);
+ box-shadow:0 8px 18px rgba(0,0,0,.16);
+}
+.value-flash{
+ animation:valueFlash .48s ease;
+}
+@keyframes valueFlash{
+ 0%{transform:scale(1)}
+ 35%{transform:scale(1.045)}
+ 100%{transform:scale(1)}
+}
+
+/* Section headers */
+.section{
+ position:relative;
+ overflow:hidden;
+}
+.section:before{
+ content:"";
+ position:absolute;
+ left:0;top:0;width:42%;height:1px;
+ background:linear-gradient(90deg,var(--cyan),transparent);
+ opacity:.55;
+}
+.section-title{
+ text-shadow:0 0 14px rgba(0,217,255,.08);
+}
+
+/* Signal cards */
+.signal-card,.smc-card{
+ position:relative;
+ overflow:hidden;
+ transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+.signal-card:before,.smc-card:before{
+ content:"";
+ position:absolute;
+ left:0;top:0;bottom:0;width:2px;
+ background:linear-gradient(180deg,var(--cyan),transparent);
+ opacity:.35;
+}
+.signal-card:hover,.smc-card:hover{
+ transform:translateY(-2px);
+ border-color:var(--border2);
+ box-shadow:0 14px 30px rgba(0,0,0,.18);
+}
+.step.active-step{
+ box-shadow:0 0 14px rgba(0,229,154,.08);
+}
+.badge{
+ transition:all .22s ease;
+}
+.badge-buy,.badge-sell,.badge-wait{
+ animation:badgeBreath 2.4s ease-in-out infinite;
+}
+@keyframes badgeBreath{
+ 50%{box-shadow:0 0 14px rgba(0,217,255,.04)}
+}
+
+/* Logs */
+.console-box{
+ scroll-behavior:smooth;
+}
+.log-line{
+ animation:logIn .25s ease both;
+}
+@keyframes logIn{
+ from{opacity:0;transform:translateX(-6px)}
+ to{opacity:1;transform:translateX(0)}
+}
+
+/* Side panel */
+.side-panel{
+ transition:box-shadow .25s ease,border-color .25s ease;
+}
+.side-panel:hover{
+ border-color:var(--border2);
+ box-shadow:0 18px 42px rgba(0,0,0,.40);
+}
+
+/* Responsive polish */
+@media(max-width:1000px){
+ .market-grid{gap:10px}
+ .desktop-layout{gap:10px}
+ .section{margin-bottom:10px}
+}
+@media(max-width:700px){
+ body{padding:7px 7px 76px}
+ .header{margin-bottom:9px}
+ .market-grid{gap:8px}
+ .market-card{padding:11px;border-radius:15px}
+ .chart-container{height:155px;margin:9px 0}
+ .section{padding:10px;border-radius:15px;margin-bottom:9px}
+ .section-head{padding-bottom:8px;margin-bottom:9px}
+ .signal-grid,.smc-grid{gap:7px}
+ .signal-card,.smc-card{padding:9px}
+ .metric{padding:6px 4px}
+ .bottom-nav{
+   left:6px;right:6px;bottom:6px;
+   box-shadow:0 12px 34px rgba(0,0,0,.42);
+ }
+}
+@media(max-width:380px){
+ .chart-container{height:142px}
+ .market-card{padding:9px}
+ .section{padding:8px}
+}
+
+/* Reduced motion accessibility */
+@media(prefers-reduced-motion:reduce){
+ *,*:before,*:after{
+   animation-duration:.01ms!important;
+   animation-iteration-count:1!important;
+   scroll-behavior:auto!important;
+   transition-duration:.01ms!important;
+ }
+}
+
 </style>
 </head>
 
@@ -1534,6 +1769,48 @@ setInterval(()=>{
 
 fetchDailyStats();
 connectWS();
+
+/* =========================================================
+   DYNAMIC UI MICRO-INTERACTIONS — VISUAL ONLY
+   ========================================================= */
+(function(){
+ const watchIds=[
+  'btc-price','eth-price','btc-spot','eth-spot','btc-vol','eth-vol',
+  'btc-pdh','btc-pdl','btc-cdh','btc-cdl','eth-pdh','eth-pdl','eth-cdh','eth-cdl',
+  'btc-sfp-signal','btc-sfp-entry','btc-sfp-sl','btc-sfp-tp1','btc-sfp-tp2',
+  'eth-sfp-signal','eth-sfp-entry','eth-sfp-sl','eth-sfp-tp1','eth-sfp-tp2',
+  'btc-action','btc-entry','btc-sl','eth-action','eth-entry','eth-sl'
+ ];
+
+ function flash(el, cls){
+   if(!el)return;
+   el.classList.remove(cls);
+   void el.offsetWidth;
+   el.classList.add(cls);
+   setTimeout(()=>el.classList.remove(cls),550);
+ }
+
+ function observe(){
+   watchIds.forEach(id=>{
+     const el=document.getElementById(id);
+     if(!el || el.dataset.uiObserved)return;
+     el.dataset.uiObserved='1';
+     let last=el.textContent;
+     const mo=new MutationObserver(()=>{
+       const now=el.textContent;
+       if(now!==last && now.trim()!=='--'){
+         flash(el,id.endsWith('-price')?'price-flash':'value-flash');
+         last=now;
+       }
+     });
+     mo.observe(el,{childList:true,characterData:true,subtree:true});
+   });
+ }
+
+ observe();
+ setInterval(observe,1200);
+})();
+
 </script>
 </body>
 </html>
